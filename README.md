@@ -1,20 +1,22 @@
-# 🌿 MakauTech — Team OOP Project
+# 🌿 MakauTech
 
-A Sibu tourism platform built with **ASP.NET Core 8 MVC** for the OOP class final project. Players discover Foochow food, climb leaderboards via mini-games, and review places — all gamified.
+A Sibu tourism platform built with **ASP.NET Core 8 MVC**. Players discover Foochow food, climb leaderboards via mini-games, and review places — all gamified.
 
 🌐 **Live:** [makautech.com](https://makautech.com)
 
 ---
 
-## 👥 Team & branches
+## 📂 Project structure
 
-| Member | Role | Branch | Status |
-|--------|------|--------|--------|
-| 🛠️ **Bryan Rozel Bin Leo** | Backend (Models, DbContext, Services, Helpers, Program.cs) | `main` | ✅ pushed |
-| 🔧 **Allysha** | Mid-end (Controllers, ViewModels, Hubs) | `allysha-midend` | ⏳ pending |
-| 🎨 **Gabriel** | Frontend (Views, CSS, JS) | `gabriel-frontend` | ⏳ pending |
+This repo is organised into role-based branches:
 
-When `allysha-midend` and `gabriel-frontend` are pushed, Bryan merges them into `main`.
+| Branch | Layer | Contents |
+|--------|-------|----------|
+| `main` | **Backend** | Models · Data · Services · Helpers · Program.cs |
+| `midend` | **Mid-end** | Controllers · ViewModels · Hubs |
+| `frontend` | **Frontend** | Views · CSS · JS |
+
+Final merged code lives on `main` after each layer's branch is integrated.
 
 ---
 
@@ -60,7 +62,7 @@ CREATE DATABASE makautech CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ### Step 3 — Configure `appsettings.Development.json`
 
-Create this file at the project root (it's `.gitignored` — your password stays local):
+Create at the project root (gitignored):
 
 ```json
 {
@@ -78,77 +80,61 @@ dotnet build
 dotnet run
 ```
 
-Open **`https://localhost:5001`** ✅ — tables auto-created on first run via EF Core migrations.
+Open **`https://localhost:5001`** ✅ — tables auto-created on first run.
 
 ---
 
 ## 🌐 Deploy to production
 
-### Option A — Bryan's existing Oracle Cloud server (recommended for class demo)
+### Option A — Existing Oracle Cloud server
 
-The project is already live at **https://makautech.com** running on Oracle Cloud Always Free tier:
+The site already runs at https://makautech.com on Oracle Cloud Always Free tier:
 
 ```
-Browser ─▶ Cloudflare (HTTPS, DNS) ─▶ Nginx :80 ─▶ Kestrel :5000 ─▶ MySQL :3306
-                                                          │
-                                                          └─▶ Brevo API (transactional email)
+Browser ─▶ Cloudflare ─▶ Nginx :80 ─▶ Kestrel :5000 ─▶ MySQL :3306
+                                              │
+                                              └─▶ Brevo API (transactional email)
 ```
 
-When team code merges to `main`, Bryan publishes:
+After main has all merged code, publish:
 
 ```bash
 dotnet publish -c Release -o ./bin/publish --runtime linux-x64 --self-contained false
-scp -i key.pem -r ./bin/publish/* ubuntu@149.118.158.72:/var/www/makautech/
-ssh -i key.pem ubuntu@149.118.158.72 "sudo systemctl restart makautech"
+scp -i key.pem -r ./bin/publish/* ubuntu@<server-ip>:/var/www/makautech/
+ssh -i key.pem ubuntu@<server-ip> "sudo systemctl restart makautech"
 ```
 
 Live within 2 minutes.
 
 ### Option B — MonsterASP.NET (free .NET hosting)
 
-1. Sign up at [monsterasp.net](https://www.monsterasp.net) — pick free tier
-2. Create new site → **.NET 8 runtime**
+1. Sign up at [monsterasp.net](https://www.monsterasp.net)
+2. Create new site → .NET 8 runtime
 3. `dotnet publish -c Release -o ./bin/publish`
-4. Upload via FileZilla (FTP) using credentials from your dashboard
-5. Bind a free MySQL database (MonsterASP includes one)
+4. Upload via FTP (FileZilla)
 
 ### Option C — Azure App Service (Student tier)
 
-1. Sign up for [Azure for Students](https://azure.microsoft.com/free/students) — free for 1 year + $100 credit
-2. In Visual Studio: right-click project → **Publish** → Azure App Service
-3. Create new App Service + Azure MySQL flexible server (free tier)
-4. Click **Publish** — auto-deploys to `<name>.azurewebsites.net`
+1. Sign up for [Azure for Students](https://azure.microsoft.com/free/students)
+2. Visual Studio → right-click project → **Publish** → Azure App Service
+3. Auto-deploys to `<name>.azurewebsites.net`
 
 ---
 
-## 📋 Team workflow
+## 📋 Workflow
 
 ```
-1. Each member receives their .rar + .docx tutorial
+1. Each developer receives their .rar + .docx tutorial
 2. Extract .rar → open MakauTech_Team.csproj in Visual Studio
 3. Follow Phase 1 → 12 in the tutorial:
-   - Phase 1-3:  Setup tools + database + appsettings
-   - Phase 4-9:  Copy code from tutorial into Visual Studio
-   - Phase 10:   Push to YOUR branch on this repo
-   - Phase 11:   Pull other branches + run locally
-   - Phase 12:   Deploy (optional)
-4. Bryan merges all branches → main
+   • Phase 1-3:  Setup tools + database + appsettings
+   • Phase 4-9:  Copy code from tutorial into Visual Studio
+   • Phase 10:   Push to YOUR branch (midend / frontend)
+   • Phase 11:   Pull other branches + run locally
+   • Phase 12:   Deploy (optional)
+4. Lead merges all branches → main
 5. Class demo from main
 ```
-
----
-
-## 🎓 Class presentation
-
-15-minute team pitch — 5 slides:
-
-1. **Title + team intro**
-2. **Product overview** (Gabriel)
-3. **Inheritance + Encapsulation** (Bryan)
-4. **Polymorphism (4 types) + Exception handling** (Allysha)
-5. **Live demo + architecture map** (all)
-
-Followed by 10-min Q&A — each member answers their domain.
 
 ---
 
