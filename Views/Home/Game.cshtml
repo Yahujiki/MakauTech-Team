@@ -1,0 +1,433 @@
+﻿@{
+    ViewData["Title"] = "Games Hub";
+}
+
+@section Styles {
+<style>
+    body {
+        background: #030d06 !important;
+    }
+
+    .main-content {
+        background: #030d06;
+    }
+
+    .gh-hero {
+        background: linear-gradient(135deg,#030d06 0%,#071d0f 50%,#0a2915 100%);
+        padding: 4rem 2rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        text-align: center;
+    }
+
+        .gh-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 80% at 50% 0%, rgba(34,197,94,0.22) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .gh-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(34,197,94,0.5), transparent);
+        }
+
+    .gh-hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(34,197,94,0.10);
+        border: 1px solid rgba(34,197,94,0.32);
+        color: #4ade80;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+        margin-bottom: 1rem;
+        /* static — no glow pulse */
+    }
+
+    .gh-hero h1 {
+        font-size: clamp(2rem,5vw,3.2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.65rem;
+        position: relative;
+        z-index: 1;
+    }
+
+        .gh-hero h1 span {
+            background: linear-gradient(90deg,#4ade80,#22c55e,#86efac);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    .gh-hero p {
+        opacity: 0.75;
+        font-size: 1.05rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Orbs removed — replaced with subtle static radial glow */
+
+    /* Grid — staggered animation */
+    .gh-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+        gap: 1.5rem;
+        padding: 2rem;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* Cards — clean dark glass, professional */
+    .gh-card {
+        background: rgba(8, 22, 12, 0.92);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(34,197,94,0.14);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        opacity: 0;
+        animation: gh-card-in 0.5s ease both;
+    }
+
+        .gh-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .gh-card:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .gh-card:nth-child(3) {
+            animation-delay: 0.19s;
+        }
+
+        .gh-card:nth-child(4) {
+            animation-delay: 0.26s;
+        }
+
+    @@keyframes gh-card-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .gh-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(34,197,94,0.28);
+        border-color: rgba(34,197,94,0.30);
+    }
+
+    .gh-card-banner {
+        height: 160px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gh-card-banner-emoji {
+        font-size: 4.5rem;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35));
+        transition: transform 0.22s ease;
+    }
+
+    .gh-card:hover .gh-card-banner-emoji {
+        transform: scale(1.10);
+    }
+
+    .gh-card-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 80% at 50% 40%, rgba(255,255,255,0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .gh-card-banner::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(to top, rgba(0,0,0,0.35), transparent);
+    }
+
+    /* Theme banners with animated gradient */
+    .gh-banner--catch {
+        background: linear-gradient(135deg,#431407,#9a3412,#ea580c);
+    }
+
+    .gh-banner--memory {
+        background: linear-gradient(135deg,#0f172a,#1e3a8a,#3b82f6);
+    }
+
+    .gh-banner--kitchen {
+        background: linear-gradient(135deg,#3d1a00,#92400e,#f59e0b);
+    }
+
+    .gh-banner--sprint {
+        background: linear-gradient(135deg,#042f1a,#065f46,#10b981);
+    }
+
+    .gh-card-body {
+        padding: 1.25rem 1.4rem 1.4rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .gh-card-badge {
+        position: absolute;
+        top: 0.85rem;
+        right: 0.85rem;
+        z-index: 3;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        color: #4ade80;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        letter-spacing: 0.05em;
+        border: 1px solid rgba(34,197,94,0.25);
+    }
+
+    .gh-card-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #e6edf3;
+        letter-spacing: -0.01em;
+    }
+
+    .gh-card-desc {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.55;
+        flex: 1;
+    }
+
+    .gh-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .gh-card-cost {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #fbbf24;
+        background: rgba(245,158,11,0.12);
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    .gh-card-play {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #fff;
+        background: linear-gradient(135deg,#22c55e,#16a34a);
+        padding: 0.45rem 1.1rem;
+        border-radius: 12px;
+        box-shadow: 0 3px 14px rgba(34,197,94,0.35);
+        transition: all 0.2s;
+    }
+
+    .gh-card:hover .gh-card-play {
+        filter: brightness(1.12);
+        transform: scale(1.05);
+        box-shadow: 0 6px 24px rgba(34,197,94,0.5);
+    }
+
+    /* Info bar */
+    .gh-info {
+        max-width: 1100px;
+        margin: 0 auto 2rem;
+        padding: 0 2rem;
+    }
+
+    .gh-info-bar {
+        background: linear-gradient(135deg, rgba(7,29,15,0.8), rgba(3,13,6,0.9));
+        border: 1.5px solid rgba(34,197,94,0.2);
+        border-radius: 18px;
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        align-items: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .gh-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.88rem;
+        color: rgba(255,255,255,0.7);
+        font-weight: 600;
+    }
+
+        .gh-info-item strong {
+            color: #4ade80;
+        }
+
+        .gh-info-item span:first-child {
+            font-size: 1.1rem;
+        }
+
+    /* Ranking pills */
+    .gh-rank-row {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .gh-rank-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 1.1rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: rgba(255,255,255,0.6);
+        transition: all 0.2s;
+    }
+
+        .gh-rank-pill:hover {
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.3);
+            color: #4ade80;
+        }
+</style>
+}
+
+<div class="gh-hero">
+    <span class="gh-hero-kicker">🎮 MakauTech Arena</span>
+    <h1>Play. Earn. <span>Dominate.</span></h1>
+    <p>4 tourism mini games · earn up to 50 pts each · climb the global leaderboard</p>
+</div>
+
+<div class="gh-rank-row">
+    <span class="gh-rank-pill">🏆 Leaderboard rewards</span>
+    <span class="gh-rank-pill">🎯 Skill-based scoring</span>
+    <span class="gh-rank-pill">⚡ Real-time points</span>
+    <span class="gh-rank-pill">🔥 Streak bonuses</span>
+</div>
+
+
+<div class="gh-grid">
+
+    <a asp-controller="FoodCatch" asp-action="Index" class="gh-card">
+        <span class="gh-card-badge">Up to 50 pts</span>
+        <div class="gh-card-banner gh-banner--catch">
+            <span class="gh-card-banner-emoji">🍜</span>
+        </div>
+        <div class="gh-card-body">
+            <div class="gh-card-name">Food Catch</div>
+            <div class="gh-card-desc">Catch falling Sarawak street food before it hits the ground. How many Kampua bowls can you grab?</div>
+            <div class="gh-card-footer">
+                <span class="gh-card-cost">🪙 20 pts entry</span>
+                <span class="gh-card-play">Play now ▶</span>
+            </div>
+        </div>
+    </a>
+
+    <a asp-controller="Memory" asp-action="Index" class="gh-card">
+        <span class="gh-card-badge">Up to 50 pts</span>
+        <div class="gh-card-banner gh-banner--memory">
+            <span class="gh-card-banner-emoji">🧠</span>
+        </div>
+        <div class="gh-card-body">
+            <div class="gh-card-name">Memory Flip</div>
+            <div class="gh-card-desc">Flip cards and match iconic Sibu landmarks. Clear the board fastest to maximise your score.</div>
+            <div class="gh-card-footer">
+                <span class="gh-card-cost">🪙 20 pts entry</span>
+                <span class="gh-card-play">Play now ▶</span>
+            </div>
+        </div>
+    </a>
+
+    <a asp-controller="KitchenRush" asp-action="Index" class="gh-card">
+        <span class="gh-card-badge">Up to 50 pts</span>
+        <div class="gh-card-banner gh-banner--kitchen">
+            <span class="gh-card-banner-emoji">🍳</span>
+        </div>
+        <div class="gh-card-body">
+            <div class="gh-card-name">Kitchen Rush</div>
+            <div class="gh-card-desc">Prep authentic Foochow dishes against the clock. Don't keep hungry customers waiting or game over!</div>
+            <div class="gh-card-footer">
+                <span class="gh-card-cost">🪙 20 pts entry</span>
+                <span class="gh-card-play">Play now ▶</span>
+            </div>
+        </div>
+    </a>
+
+    <a asp-controller="Sibusprinter" asp-action="Index" class="gh-card">
+        <span class="gh-card-badge">Up to 50 pts</span>
+        <div class="gh-card-banner gh-banner--sprint">
+            <span class="gh-card-banner-emoji">🏃</span>
+        </div>
+        <div class="gh-card-body">
+            <div class="gh-card-name">Sibu Sprint</div>
+            <div class="gh-card-desc">Endless runner through Sibu streets — jump obstacles, collect Kek Lapis and local treats to survive!</div>
+            <div class="gh-card-footer">
+                <span class="gh-card-cost">🪙 20 pts entry</span>
+                <span class="gh-card-play">Play now ▶</span>
+            </div>
+        </div>
+    </a>
+
+</div>
+
+<div class="gh-info">
+    <div class="gh-info-bar">
+        <div class="gh-info-item"><span>💡</span><span>20 pts entry · up to 50 pts win = <strong>+30 net gain</strong></span></div>
+        <div class="gh-info-item"><span>🎯</span><span>First play of each game may be <strong>free</strong></span></div>
+        <div class="gh-info-item"><span>🏆</span><span>Score caps keep the leaderboard <strong>fair for all</strong></span></div>
+    </div>
+</div>

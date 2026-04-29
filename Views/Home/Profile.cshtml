@@ -1,0 +1,72 @@
+﻿@model MakauTech.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "Profile";
+    var user = Model.User;
+    int nextPts = user.Level == "Newbie" ? 20 : user.Level == "Bronze" ? 50 : user.Level == "Silver" ? 100 : 999;
+    int prog = user.Level == "Gold" ? 100 : (int)((double)user.Points / nextPts * 100);
+}
+<div class="profile-container">
+    <div class="profile-identity">
+        @if (ViewBag.AvatarUrl != null)
+        {
+        <img src="@Url.Content((string)ViewBag.AvatarUrl)" alt="" class="profile-avatar-lg" width="96" height="96" />
+        }
+        else
+        {
+        <div class="profile-avatar-lg profile-avatar-placeholder" aria-hidden="true">👤</div>
+        }
+        <div class="profile-identity-text">
+            <h2 class="profile-display-name">@user.Name</h2>
+            <p class="profile-identity-meta">@user.Email · <span class="level-@user.Level.ToLower()">@user.Level</span></p>
+            <a asp-controller="Home" asp-action="Settings" class="btn-primary" style="margin-top:0.5rem;display:inline-block">⚙️ Settings</a>
+        </div>
+    </div>
+    <div class="profile-stats">
+        <div class="stat-card"><div class="stat-value">@user.Points</div><div class="stat-label">Total Points</div></div>
+        <div class="stat-card"><div class="stat-value level-@user.Level.ToLower()">@user.Level</div><div class="stat-label">Level</div></div>
+        <div class="stat-card"><div class="stat-value">#@Model.Rank</div><div class="stat-label">Leaderboard Rank</div></div>
+        <div class="stat-card"><div class="stat-value">@user.VisitedPlaceIds.Count</div><div class="stat-label">Places Visited</div></div>
+        <div class="stat-card"><div class="stat-value">@user.Badges.Count</div><div class="stat-label">Badges Earned</div></div>
+    </div>
+    <div class="profile-section">
+        <h3>Level Progress</h3>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:@prog%"></div></div>
+        <p>@user.Points / @(user.Level == "Gold" ? "MAX" : nextPts.ToString()) pts to next level</p>
+    </div>
+    <div class="profile-section">
+        <h3>🏅 Badges</h3>
+        <div class="badges-grid">
+            @foreach (var a in Model.AllAchievements)
+            {
+            bool unlocked = user.Badges.Contains(a.Name);
+            <div class="badge-card @(unlocked ? " badge-unlocked" : "badge-locked" )">
+                <span class="badge-icon">@a.Icon</span>
+                <h4>@a.Name</h4><p>@a.Description</p>
+                <span class="badge-status">@(unlocked ? "✅ Unlocked" : "🔒 Locked")</span>
+            </div>
+            }
+        </div>
+    </div>
+    <div class="profile-section">
+        <h3>✍️ My Reviews (@Model.UserReviews.Count)</h3>
+        @if (!Model.UserReviews.Any())
+        {
+        <p class="empty-state">No reviews yet!</p>
+        }
+        @foreach (var r in Model.UserReviews)
+        {
+        <div class="review-card">
+            <div class="review-header"><strong>@r.Place?.Name</strong><span>⭐ @r.Rating/5</span></div>
+            <p>@r.Comment</p>
+            <div class="review-actions">
+                <a asp-controller="Place" asp-action="EditReview" asp-route-id="@r.Id" class="btn-edit">Edit</a>
+                <form method="post" asp-controller="Place" asp-action="DeleteReview" style="display:inline">
+                    <input type="hidden" name="id" value="@r.Id" />
+                    <button type="submit" class="btn-delete" onclick="return confirm('Delete?')">Delete</button>
+                </form>
+            </div>
+        </div>
+        }
+    </div>
+    <div class="profile-section"><a asp-action="EditProfile" class="btn-primary">Edit Profile</a></div>
+</div>

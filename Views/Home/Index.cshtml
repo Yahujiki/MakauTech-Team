@@ -1,0 +1,1295 @@
+﻿@model MakauTech.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Home";
+    var ph = Url.Content("~/Images/placeholder.svg");
+    bool loggedIn = ViewBag.IsLoggedIn == true;
+    string userName = (ViewBag.UserName as string) ?? "";
+}
+
+@section Styles {
+    <style>
+             /* ══════════════════════════════════════════════════════════════
+        LANDING PAGE — Architect Refactor
+        Wide canvas · cinematic hero · clean glass cards
+        ══════════════════════════════════════════════════════════════ */
+
+             /* Wide content container */
+             .lp-container {
+                 width: 100%;
+                 max-width: 1440px;
+                 margin: 0 auto;
+                 padding: 0 clamp(20px, 4vw, 80px);
+             }
+
+             /* Section rhythm */
+             .lp-section {
+                 width: 100%;
+                 padding: clamp(64px, 8vw, 112px) 0;
+             }
+
+             .lp-section--alt {
+                 background: #f8f9fa;
+             }
+
+             .lp-section--dark {
+                 background: #111827;
+             }
+
+             /* ─── HERO ──────────────────────────────────────────────────── */
+             .lp-hero {
+                 position: relative;
+                 width: 100%;
+                 min-height: min(92vh, 920px);
+                 display: flex;
+                 align-items: center;
+                 overflow: hidden;
+                 isolation: isolate;
+             }
+
+             .lp-hero-bg {
+                 position: absolute;
+                 inset: 0;
+                 z-index: -2;
+             }
+
+             .lp-hero-frame {
+                 position: absolute;
+                 inset: -6%;
+                 background-size: cover;
+                 background-position: center;
+                 opacity: 0;
+                 animation: lp-bg-cycle 36s ease-in-out infinite;
+             }
+
+                 .lp-hero-frame:nth-child(1) {
+                     animation-delay: 0s;
+                 }
+
+                 .lp-hero-frame:nth-child(2) {
+                     animation-delay: 12s;
+                 }
+
+                 .lp-hero-frame:nth-child(3) {
+                     animation-delay: 24s;
+                 }
+
+             @@keyframes lp-bg-cycle {
+                 0%, 3% {
+                     opacity: 0;
+                     transform: scale(1.00);
+                 }
+
+                 9%, 30% {
+                     opacity: 1;
+                     transform: scale(1.06) translateY(-2%);
+                 }
+
+                 38%, 100% {
+                     opacity: 0;
+                     transform: scale(1.12) translateY(-5%);
+                 }
+             }
+
+             @@media (prefers-reduced-motion: reduce) {
+                 .lp-hero-frame {
+                     animation: none;
+                     opacity: 0;
+                 }
+
+                     .lp-hero-frame:nth-child(1) {
+                         opacity: 1;
+                     }
+             }
+
+             /* Clean dark-to-transparent — NO harsh green/orange */
+             .lp-hero-overlay {
+                 position: absolute;
+                 inset: 0;
+                 z-index: -1;
+                 background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.50) 38%, rgba(0,0,0,0.22) 65%, rgba(0,0,0,0.06) 100%), radial-gradient(ellipse 120% 60% at 50% 100%, rgba(0,0,0,0.28) 0%, transparent 60%);
+             }
+
+             .lp-hero-body {
+                 width: 100%;
+                 max-width: 1440px;
+                 margin: 0 auto;
+                 padding: clamp(80px,10vw,140px) clamp(20px,4vw,80px) clamp(80px,8vw,120px);
+                 display: flex;
+                 flex-direction: column;
+                 align-items: flex-start;
+             }
+
+             .lp-hero-eyebrow {
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 8px;
+                 padding: 6px 16px;
+                 background: rgba(255,255,255,0.12);
+                 backdrop-filter: blur(10px);
+                 border: 1px solid rgba(255,255,255,0.22);
+                 border-radius: 999px;
+                 font-size: 12px;
+                 font-weight: 700;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 color: rgba(255,255,255,0.92);
+                 margin-bottom: 28px;
+             }
+
+             .lp-hero-eyebrow-dot {
+                 width: 7px;
+                 height: 7px;
+                 border-radius: 50%;
+                 background: #34d399;
+                 box-shadow: 0 0 8px rgba(52,211,153,0.8);
+             }
+
+             .lp-hero-h1 {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: clamp(52px, 8vw, 108px);
+                 font-weight: 900;
+                 line-height: 0.96;
+                 letter-spacing: -0.03em;
+                 color: #ffffff;
+                 margin: 0 0 24px;
+                 max-width: 14ch;
+             }
+
+                 .lp-hero-h1 em {
+                     font-style: italic;
+                     color: #6ee7b7;
+                     display: block;
+                 }
+
+             .lp-hero-sub {
+                 font-size: clamp(16px, 1.8vw, 20px);
+                 color: rgba(255,255,255,0.78);
+                 max-width: 52ch;
+                 line-height: 1.65;
+                 margin-bottom: 36px;
+                 font-weight: 400;
+             }
+
+             .lp-hero-chips {
+                 display: flex;
+                 gap: 10px;
+                 flex-wrap: wrap;
+                 margin-bottom: 36px;
+             }
+
+             .lp-hero-chip {
+                 padding: 7px 16px;
+                 background: rgba(255,255,255,0.10);
+                 backdrop-filter: blur(8px);
+                 border: 1px solid rgba(255,255,255,0.18);
+                 border-radius: 999px;
+                 font-size: 13px;
+                 font-weight: 600;
+                 color: rgba(255,255,255,0.90);
+             }
+
+             .lp-hero-cta {
+                 display: flex;
+                 gap: 14px;
+                 flex-wrap: wrap;
+                 align-items: center;
+             }
+
+             /* Animated scroll indicator */
+             .lp-hero-scroll {
+                 position: absolute;
+                 bottom: 36px;
+                 left: 50%;
+                 transform: translateX(-50%);
+                 display: flex;
+                 flex-direction: column;
+                 align-items: center;
+                 gap: 6px;
+                 color: rgba(255,255,255,0.42);
+                 font-size: 10.5px;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 animation: lp-bob 2.2s ease-in-out infinite;
+             }
+
+             .lp-hero-scroll-line {
+                 width: 1px;
+                 height: 38px;
+                 background: linear-gradient(to bottom, rgba(255,255,255,0.38), transparent);
+             }
+
+             @@keyframes lp-bob {
+                 0%, 100% {
+                     transform: translateX(-50%) translateY(0);
+                 }
+
+                 50% {
+                     transform: translateX(-50%) translateY(6px);
+                 }
+             }
+
+             @@media (prefers-reduced-motion: reduce) {
+                 .lp-hero-scroll {
+                     animation: none;
+                 }
+             }
+
+             @@media (max-width: 640px) {
+                 .lp-hero-scroll {
+                     display: none;
+                 }
+             }
+
+             /* ─── STATS BAR ─────────────────────────────────────────────── */
+             .lp-stats-bar {
+                 width: 100%;
+                 background: #fff;
+                 border-bottom: 1px solid rgba(15,23,42,0.07);
+                 box-shadow: 0 4px 24px rgba(15,23,42,0.05);
+             }
+
+             .lp-stats-inner {
+                 display: grid;
+                 grid-template-columns: repeat(4, 1fr);
+                 max-width: 1440px;
+                 margin: 0 auto;
+                 padding: 0 clamp(20px, 4vw, 80px);
+             }
+
+             @@media (max-width: 600px) {
+                 .lp-stats-inner {
+                     grid-template-columns: repeat(2, 1fr);
+                 }
+             }
+
+             .lp-stat {
+                 padding: 28px 20px;
+                 border-right: 1px solid rgba(15,23,42,0.07);
+                 display: flex;
+                 flex-direction: column;
+                 gap: 5px;
+             }
+
+                 .lp-stat:last-child {
+                     border-right: none;
+                 }
+
+             .lp-stat-num {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: clamp(28px, 3vw, 40px);
+                 font-weight: 900;
+                 color: #111827;
+                 letter-spacing: -0.03em;
+                 line-height: 1;
+             }
+
+                 .lp-stat-num span {
+                     color: #10b981;
+                 }
+
+             .lp-stat-label {
+                 font-size: 11.5px;
+                 font-weight: 600;
+                 color: #64748b;
+                 text-transform: uppercase;
+                 letter-spacing: 0.08em;
+             }
+
+             /* ─── SECTION HEADER ─────────────────────────────────────────── */
+             .lp-section-head {
+                 display: flex;
+                 align-items: flex-end;
+                 justify-content: space-between;
+                 gap: 20px;
+                 margin-bottom: 40px;
+                 flex-wrap: wrap;
+             }
+
+             .lp-section-kicker {
+                 font-size: 11.5px;
+                 font-weight: 700;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 color: #10b981;
+                 display: block;
+                 margin-bottom: 10px;
+             }
+
+             .lp-section-h2 {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: clamp(28px, 4vw, 48px);
+                 font-weight: 900;
+                 color: #111827;
+                 letter-spacing: -0.03em;
+                 line-height: 1.1;
+                 margin: 0;
+             }
+
+             .lp-section-sub {
+                 font-size: 15.5px;
+                 color: #64748b;
+                 line-height: 1.65;
+                 max-width: 52ch;
+                 margin-top: 10px;
+             }
+
+             /* Ghost outline button */
+             .mk-btn-outline-dark {
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 6px;
+                 padding: 10px 20px;
+                 background: transparent;
+                 color: #374151 !important;
+                 border: 1.5px solid rgba(15,23,42,0.18);
+                 border-radius: 999px;
+                 font-size: 14px;
+                 font-weight: 600;
+                 transition: border-color 0.2s, background 0.2s, transform 0.2s;
+                 text-decoration: none;
+             }
+
+                 .mk-btn-outline-dark:hover {
+                     border-color: #10b981;
+                     background: #f0fdf4;
+                     transform: translateY(-1px);
+                 }
+
+             /* ─── VIDEO ──────────────────────────────────────────────────── */
+             .lp-video-wrap {
+                 width: min(1200px, 84vw);
+                 margin: 0 auto;
+             }
+
+             .lp-video-frame {
+                 position: relative;
+                 aspect-ratio: 16/9;
+                 border-radius: 20px;
+                 overflow: hidden;
+                 box-shadow: 0 32px 80px rgba(0,0,0,0.20), 0 0 0 1px rgba(15,23,42,0.08);
+                 background: #0a1f12;
+             }
+
+                 .lp-video-frame iframe {
+                     position: absolute;
+                     inset: 0;
+                     width: 100%;
+                     height: 100%;
+                     border: 0;
+                 }
+
+             .lp-video-placeholder {
+                 position: relative;
+                 width: 100%;
+                 height: 100%;
+                 display: grid;
+                 place-items: center;
+             }
+
+             .lp-video-poster {
+                 position: absolute;
+                 inset: 0;
+                 width: 100%;
+                 height: 100%;
+                 object-fit: cover;
+                 opacity: 0.45;
+                 filter: brightness(0.75) saturate(0.85);
+             }
+
+             .lp-video-play-btn {
+                 position: relative;
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 14px;
+                 padding: 18px 32px;
+                 background: rgba(255,255,255,0.94);
+                 backdrop-filter: blur(12px);
+                 color: #047857;
+                 border: none;
+                 border-radius: 999px;
+                 font-family: inherit;
+                 font-size: 16px;
+                 font-weight: 700;
+                 box-shadow: 0 20px 48px rgba(0,0,0,0.28);
+                 cursor: default;
+             }
+
+             .lp-video-play-icon {
+                 display: inline-grid;
+                 place-items: center;
+                 width: 40px;
+                 height: 40px;
+                 background: linear-gradient(135deg, #10b981, #059669);
+                 color: #fff;
+                 border-radius: 50%;
+                 font-size: 14px;
+                 box-shadow: 0 4px 14px rgba(16,185,129,0.5);
+             }
+
+             .lp-video-caption {
+                 text-align: center;
+                 margin-top: 20px;
+                 color: #64748b;
+                 font-size: 14px;
+                 line-height: 1.6;
+             }
+
+             /* ─── WHY SIBU CARDS — clean white, no pastels ───────────────── */
+             .lp-why-grid {
+                 display: grid;
+                 grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                 gap: 24px;
+             }
+
+             .lp-why-card {
+                 background: #ffffff;
+                 border-radius: 20px;
+                 padding: 36px 28px;
+                 border: 1px solid rgba(15,23,42,0.08);
+                 box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.06);
+                 transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+                 display: flex;
+                 flex-direction: column;
+                 gap: 14px;
+                 position: relative;
+                 overflow: hidden;
+             }
+                 /* Coloured top accent stripe */
+                 .lp-why-card::before {
+                     content: '';
+                     position: absolute;
+                     top: 0;
+                     left: 0;
+                     right: 0;
+                     height: 3px;
+                     border-radius: 20px 20px 0 0;
+                 }
+
+             .lp-why-card--nature::before {
+                 background: linear-gradient(90deg,#10b981,#34d399);
+             }
+
+             .lp-why-card--heritage::before {
+                 background: linear-gradient(90deg,#f59e0b,#fbbf24);
+             }
+
+             .lp-why-card--food::before {
+                 background: linear-gradient(90deg,#f43f5e,#fb7185);
+             }
+
+             .lp-why-card--river::before {
+                 background: linear-gradient(90deg,#3b82f6,#60a5fa);
+             }
+
+             .lp-why-card:hover {
+                 transform: translateY(-6px);
+                 box-shadow: 0 10px 20px rgba(15,23,42,0.06), 0 28px 56px rgba(15,23,42,0.12);
+                 border-color: rgba(16,185,129,0.20);
+             }
+
+             .lp-why-icon-wrap {
+                 display: inline-flex;
+                 width: 52px;
+                 height: 52px;
+                 border-radius: 14px;
+                 align-items: center;
+                 justify-content: center;
+                 font-size: 26px;
+                 flex-shrink: 0;
+             }
+
+             .lp-why-card--nature .lp-why-icon-wrap {
+                 background: #ecfdf5;
+             }
+
+             .lp-why-card--heritage .lp-why-icon-wrap {
+                 background: #fffbeb;
+             }
+
+             .lp-why-card--food .lp-why-icon-wrap {
+                 background: #fff1f2;
+             }
+
+             .lp-why-card--river .lp-why-icon-wrap {
+                 background: #eff6ff;
+             }
+
+             .lp-why-card h3 {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: 21px;
+                 font-weight: 700;
+                 color: #111827;
+                 letter-spacing: -0.02em;
+                 margin: 0;
+                 line-height: 1.2;
+             }
+
+             .lp-why-card p {
+                 font-size: 14.5px;
+                 color: #475569;
+                 line-height: 1.65;
+                 margin: 0;
+                 flex: 1;
+             }
+
+             .lp-why-tag {
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 6px;
+                 font-size: 11px;
+                 font-weight: 700;
+                 text-transform: uppercase;
+                 letter-spacing: 0.08em;
+                 color: #94a3b8;
+             }
+
+                 .lp-why-tag::before {
+                     content: '';
+                     width: 20px;
+                     height: 1px;
+                     background: currentColor;
+                     opacity: 0.45;
+                 }
+
+             /* ─── QUOTE BREAK — editorial, left-aligned ─────────────────── */
+             .lp-quote-break {
+                 position: relative;
+                 width: 100%;
+                 min-height: 440px;
+                 display: flex;
+                 align-items: center;
+                 background-attachment: fixed;
+                 background-size: cover;
+                 background-position: center;
+                 overflow: hidden;
+             }
+
+             .lp-quote-break-overlay {
+                 position: absolute;
+                 inset: 0;
+                 background: rgba(5,12,8,0.66);
+             }
+
+             .lp-quote-break-body {
+                 position: relative;
+                 z-index: 1;
+                 width: 100%;
+                 max-width: 1440px;
+                 margin: 0 auto;
+                 padding: 80px clamp(20px,4vw,80px);
+                 display: flex;
+                 flex-direction: column;
+                 gap: 14px;
+             }
+
+             .lp-quote-tag {
+                 font-size: 11px;
+                 font-weight: 700;
+                 letter-spacing: 0.16em;
+                 text-transform: uppercase;
+                 color: #6ee7b7;
+             }
+
+             .lp-quote-text {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: clamp(26px, 4.5vw, 58px);
+                 font-weight: 700;
+                 font-style: italic;
+                 color: #ffffff;
+                 line-height: 1.18;
+                 letter-spacing: -0.02em;
+                 max-width: 20ch;
+                 margin: 0;
+             }
+
+             .lp-quote-attr {
+                 font-size: 12px;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 color: rgba(255,255,255,0.38);
+                 margin: 0;
+             }
+
+             @@media (max-width: 768px) {
+                 .lp-quote-break {
+                     background-attachment: scroll;
+                     min-height: 320px;
+                 }
+             }
+
+             @@media (prefers-reduced-motion: reduce) {
+                 .lp-quote-break {
+                     background-attachment: scroll;
+                 }
+             }
+
+             /* ─── PODIUM ─────────────────────────────────────────────────── */
+             .lp-podium {
+                 display: grid;
+                 grid-template-columns: repeat(3,1fr);
+                 gap: 24px;
+                 margin-top: 8px;
+             }
+
+             @@media (max-width: 600px) {
+                 .lp-podium {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .lp-podium-card {
+                 background: #fff;
+                 border-radius: 20px;
+                 padding: 36px 24px;
+                 border: 1px solid rgba(15,23,42,0.07);
+                 box-shadow: 0 2px 6px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.08);
+                 text-align: center;
+                 transition: transform 0.25s, box-shadow 0.25s;
+             }
+
+                 .lp-podium-card:hover {
+                     transform: translateY(-5px);
+                     box-shadow: 0 14px 40px rgba(15,23,42,0.13);
+                 }
+
+                 .lp-podium-card[data-rank="1"] {
+                     border-top: 3px solid #f59e0b;
+                 }
+
+                 .lp-podium-card[data-rank="2"] {
+                     border-top: 3px solid #94a3b8;
+                 }
+
+                 .lp-podium-card[data-rank="3"] {
+                     border-top: 3px solid #cd7f32;
+                 }
+
+             .lp-podium-medal {
+                 font-size: 52px;
+                 line-height: 1;
+                 margin-bottom: 12px;
+                 filter: drop-shadow(0 4px 10px rgba(0,0,0,0.14));
+             }
+
+             .lp-podium-rank {
+                 font-size: 10.5px;
+                 font-weight: 700;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 color: #94a3b8;
+                 margin-bottom: 8px;
+             }
+
+             .lp-podium-card[data-rank="1"] .lp-podium-rank {
+                 color: #b45309;
+             }
+
+             .lp-podium-card[data-rank="3"] .lp-podium-rank {
+                 color: #c2410c;
+             }
+
+             .lp-podium-name {
+                 font-weight: 700;
+                 font-size: 18px;
+                 color: #111827;
+                 margin-bottom: 6px;
+             }
+
+             .lp-podium-pts {
+                 font-size: 14px;
+                 color: #64748b;
+             }
+
+                 .lp-podium-pts strong {
+                     color: #10b981;
+                     font-weight: 700;
+                 }
+
+             /* ─── GAMES PROMO — dark editorial grid ─────────────────────── */
+             .lp-games {
+                 background: #111827;
+                 width: 100%;
+                 padding: clamp(72px,9vw,120px) 0;
+                 position: relative;
+                 overflow: hidden;
+             }
+                 /* Subtle radial glows */
+                 .lp-games::before {
+                     content: '';
+                     position: absolute;
+                     inset: 0;
+                     background: radial-gradient(ellipse 55% 70% at 90% 50%, rgba(16,185,129,0.11) 0%, transparent 60%), radial-gradient(ellipse 40% 50% at 8% 30%, rgba(16,185,129,0.07) 0%, transparent 55%);
+                     pointer-events: none;
+                 }
+                 /* Dot-grid texture */
+                 .lp-games::after {
+                     content: '';
+                     position: absolute;
+                     inset: 0;
+                     background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+                     background-size: 36px 36px;
+                     pointer-events: none;
+                 }
+
+             .lp-games-inner {
+                 position: relative;
+                 z-index: 1;
+                 max-width: 1440px;
+                 margin: 0 auto;
+                 padding: 0 clamp(20px,4vw,80px);
+                 display: grid;
+                 grid-template-columns: 1fr 1fr;
+                 gap: 72px;
+                 align-items: center;
+             }
+
+             @@media (max-width: 860px) {
+                 .lp-games-inner {
+                     grid-template-columns: 1fr;
+                     gap: 40px;
+                 }
+             }
+
+             .lp-games-eyebrow {
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 8px;
+                 font-size: 11.5px;
+                 font-weight: 700;
+                 letter-spacing: 0.12em;
+                 text-transform: uppercase;
+                 color: #34d399;
+                 margin-bottom: 20px;
+             }
+
+             .lp-games-h2 {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-size: clamp(36px, 5vw, 64px);
+                 font-weight: 900;
+                 color: #ffffff;
+                 letter-spacing: -0.03em;
+                 line-height: 1.0;
+                 margin: 0 0 20px;
+             }
+
+                 .lp-games-h2 em {
+                     font-style: italic;
+                     color: #6ee7b7;
+                 }
+
+             .lp-games-sub {
+                 font-size: clamp(15px,1.5vw,18px);
+                 color: rgba(255,255,255,0.58);
+                 line-height: 1.65;
+                 max-width: 44ch;
+                 margin-bottom: 36px;
+             }
+
+             .lp-games-tiles {
+                 display: grid;
+                 grid-template-columns: repeat(3,1fr);
+                 gap: 14px;
+             }
+
+             @@media (max-width: 500px) {
+                 .lp-games-tiles {
+                     grid-template-columns: repeat(3,1fr);
+                 }
+             }
+
+             .lp-games-tile {
+                 aspect-ratio: 1;
+                 background: rgba(255,255,255,0.05);
+                 border: 1px solid rgba(255,255,255,0.08);
+                 border-radius: 18px;
+                 display: grid;
+                 place-items: center;
+                 font-size: 34px;
+                 transition: transform 0.22s, background 0.22s, border-color 0.22s;
+             }
+
+                 .lp-games-tile:hover {
+                     transform: translateY(-4px) scale(1.06);
+                     background: rgba(16,185,129,0.12);
+                     border-color: rgba(52,211,153,0.30);
+                 }
+
+             /* ─── QUICK ACTIONS ──────────────────────────────────────────── */
+             .lp-quick-grid {
+                 display: grid;
+                 grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+                 gap: 20px;
+             }
+
+             .lp-quick-card {
+                 background: #fff;
+                 border-radius: 20px;
+                 padding: 36px 24px;
+                 border: 1px solid rgba(15,23,42,0.07);
+                 box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06);
+                 text-align: center;
+                 text-decoration: none;
+                 display: flex;
+                 flex-direction: column;
+                 align-items: center;
+                 gap: 10px;
+                 transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+             }
+
+                 .lp-quick-card:hover {
+                     transform: translateY(-5px);
+                     box-shadow: 0 12px 32px rgba(15,23,42,0.12);
+                     border-color: rgba(16,185,129,0.22);
+                 }
+
+             .lp-quick-icon {
+                 width: 56px;
+                 height: 56px;
+                 background: #f0fdf4;
+                 border-radius: 16px;
+                 display: grid;
+                 place-items: center;
+                 font-size: 28px;
+                 margin-bottom: 4px;
+                 transition: background 0.22s, transform 0.22s;
+             }
+
+             .lp-quick-card:hover .lp-quick-icon {
+                 background: #dcfce7;
+                 transform: scale(1.08) rotate(-3deg);
+             }
+
+             .lp-quick-title {
+                 font-family: var(--mk-font-display, 'Fraunces', serif);
+                 font-weight: 700;
+                 font-size: 18px;
+                 color: #111827;
+                 letter-spacing: -0.01em;
+             }
+
+             .lp-quick-desc {
+                 font-size: 13px;
+                 color: #64748b;
+                 line-height: 1.5;
+             }
+
+             /* ─── UPDATE CARD THUMB ──────────────────────────────────────── */
+             .lp-update-thumb {
+                 aspect-ratio: 16/9;
+                 background: #f1f5f9;
+                 display: grid;
+                 place-items: center;
+                 overflow: hidden;
+             }
+    </style>
+}
+
+<!-- ═══ HERO — full-bleed cinematic ═══════════════════════════ -->
+<section class="lp-hero">
+    <div class="lp-hero-bg" aria-hidden="true">
+        <div class="lp-hero-frame" style="background-image:url('@Url.Content("~/Images/rajang-river.jpg")');"></div>
+        <div class="lp-hero-frame" style="background-image:url('@Url.Content("~/Images/wisma-sanyan.jpg")');"></div>
+        <div class="lp-hero-frame" style="background-image:url('@Url.Content("~/Images/sibu-lake-garden.jpg")');"></div>
+    </div>
+    <div class="lp-hero-overlay" aria-hidden="true"></div>
+
+    <div class="lp-hero-body">
+        <div class="lp-hero-eyebrow" aria-label="Sibu, Sarawak — Swan City, Borneo">
+            <span class="lp-hero-eyebrow-dot" aria-hidden="true"></span>
+            Sibu, Sarawak &nbsp;·&nbsp; Swan City &nbsp;·&nbsp; Borneo
+        </div>
+
+        <h1 class="lp-hero-h1">
+            Discover Sibu<br />
+            <em>one story at&nbsp;a&nbsp;time.</em>
+        </h1>
+
+        <p class="lp-hero-sub">
+            Foochow noodles before sunrise. Hornbills calling over the Rajang.
+            Century-old temples by lamplight. MakauTech turns your journey through
+            Borneo's Swan City into an adventure — earn points, collect badges,
+            climb the leaderboard.
+        </p>
+
+        <div class="lp-hero-chips">
+            <span class="lp-hero-chip">📍 16+ curated places</span>
+            <span class="lp-hero-chip">🎮 5 mini-games</span>
+            <span class="lp-hero-chip">🏆 8 unlockable badges</span>
+            <span class="lp-hero-chip">🦢 AI guide</span>
+        </div>
+
+        <div class="lp-hero-cta">
+            @if (loggedIn)
+            {
+                <a href="@Url.Action("Explore","Home")" class="mk-btn mk-btn-primary" style="padding:14px 28px;font-size:16px;">Explore Places →</a>
+                <a href="@Url.Action("Games","Home")" class="mk-btn" style="padding:14px 28px;font-size:16px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.32);color:#fff !important;border-radius:999px;font-weight:700;">Play Games</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Register","Home")" class="mk-btn mk-btn-primary" style="padding:14px 28px;font-size:16px;">Get started — it's free →</a>
+                <a href="@Url.Action("Login","Home")" class="mk-btn" style="padding:14px 28px;font-size:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);color:#fff !important;border-radius:999px;font-weight:700;">Sign in</a>
+            }
+        </div>
+    </div>
+
+    <div class="lp-hero-scroll" aria-hidden="true">
+        <div class="lp-hero-scroll-line"></div>
+        <span>Scroll</span>
+    </div>
+</section>
+
+<!-- ═══ STATS BAR ══════════════════════════════════════════════ -->
+<div class="lp-stats-bar">
+    <div class="lp-stats-inner">
+        <div class="lp-stat">
+            <div class="lp-stat-num">16<span>+</span></div>
+            <div class="lp-stat-label">Curated places</div>
+        </div>
+        <div class="lp-stat">
+            <div class="lp-stat-num">5</div>
+            <div class="lp-stat-label">Mini-games</div>
+        </div>
+        <div class="lp-stat">
+            <div class="lp-stat-num">8</div>
+            <div class="lp-stat-label">Unlockable badges</div>
+        </div>
+        <div class="lp-stat">
+            <div class="lp-stat-num">1<span>st</span></div>
+            <div class="lp-stat-label">Smart tourism app in Sibu</div>
+        </div>
+    </div>
+</div>
+
+@if (!loggedIn)
+{
+    <!-- ═══ PROMO VIDEO — cinematic centrepiece ════════════════════ -->
+    <section class="lp-section" id="promo">
+        <div class="lp-container" style="text-align:center;margin-bottom:40px;">
+            <span class="lp-section-kicker">🎬 Watch the trailer</span>
+            <h2 class="lp-section-h2">Sibu in 60 seconds</h2>
+            <p class="lp-section-sub" style="margin:10px auto 0;">
+                A walk through the Foochow heritage trail, river cruises,
+                and rainforest escapes — all unlockable as in-app quests.
+            </p>
+        </div>
+        <div class="lp-video-wrap">
+            <div class="lp-video-frame">
+                @{
+                    var promoId = ViewBag.PromoVideoId as string ?? "";
+                }
+                @if (!string.IsNullOrEmpty(promoId))
+                {
+                    <iframe src="https://www.youtube.com/embed/@promoId?rel=0&modestbranding=1"
+                            title="MakauTech promo video"
+                            frameborder="0" loading="lazy"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                }
+                else
+                {
+                    <div class="lp-video-placeholder">
+                        <img src="~/Images/Background.jpg" alt="" class="lp-video-poster" />
+                        <button type="button" class="lp-video-play-btn" aria-label="Promo video coming soon" disabled>
+                            <span class="lp-video-play-icon" aria-hidden="true">▶</span>
+                            <span>Promo video — coming soon</span>
+                        </button>
+                    </div>
+                }
+            </div>
+            <p class="lp-video-caption">Shot on location across Sibu, Sarawak &nbsp;·&nbsp; 60 seconds to fall in love with Borneo's Swan City</p>
+        </div>
+    </section>
+}
+
+<!-- ═══ LATEST UPDATES ════════════════════════════════════════ -->
+@{
+    var latestUpdates = (ViewBag.LatestUpdates as List<MakauTech.Models.Update>) ?? new List<MakauTech.Models.Update>();
+}
+@if (latestUpdates.Any())
+{
+    <section class="lp-section lp-section--alt">
+        <div class="lp-container">
+            <div class="lp-section-head">
+                <div>
+                    <span class="lp-section-kicker">📢 What's new</span>
+                    <h2 class="lp-section-h2">Latest updates</h2>
+                </div>
+                <a href="@Url.Action("Updates","Home")" class="mk-btn-outline-dark">All updates →</a>
+            </div>
+            <div class="mk-grid-3">
+                @foreach (var u in latestUpdates)
+                {
+                    <a href="@Url.Action("UpdateDetail","Home",new{id=u.Id})" class="mk-place-card mk-fade-in" style="display:flex;flex-direction:column;">
+                        <div class="lp-update-thumb">
+                            @if (!string.IsNullOrEmpty(u.ImageUrl))
+                            {
+                                <img src="@u.ImageUrl" alt="@u.Title" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span style="font-size:42px;opacity:0.32;" aria-hidden="true">📰</span>
+                            }
+                        </div>
+                        <div style="padding:20px 22px 24px;flex:1;display:flex;flex-direction:column;gap:6px;">
+                            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#10b981;">@u.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</div>
+                            <h3 style="font-family:var(--mk-font-display);font-weight:700;font-size:18px;line-height:1.3;color:#111827;margin:0;">@u.Title</h3>
+                            @if (!string.IsNullOrEmpty(u.Summary))
+                            {
+                                <p style="margin:0;color:#64748b;font-size:13.5px;line-height:1.55;">@(u.Summary.Length > 100 ? u.Summary[..100] + "…" : u.Summary)</p>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══ WHY SIBU — 4 clean cards ══════════════════════════════ -->
+<section class="lp-section">
+    <div class="lp-container">
+        <div class="lp-section-head">
+            <div>
+                <span class="lp-section-kicker">What makes Sibu special</span>
+                <h2 class="lp-section-h2">Four flavours of one city</h2>
+            </div>
+        </div>
+        <div class="lp-why-grid">
+            <div class="lp-why-card lp-why-card--nature mk-fade-in">
+                <div class="lp-why-icon-wrap" aria-hidden="true">🌿</div>
+                <h3>Living rainforest</h3>
+                <p>Bukit Lima's primary jungle, hornbills overhead, the wide green Rajang at every turn. Sibu is a city where nature is never more than five minutes away.</p>
+                <span class="lp-why-tag">Nature</span>
+            </div>
+            <div class="lp-why-card lp-why-card--heritage mk-fade-in mk-fade-in-1">
+                <div class="lp-why-icon-wrap" aria-hidden="true">🏛️</div>
+                <h3>Foochow heritage</h3>
+                <p>Tua Pek Kong's century-old altars, Lau King Howe's tiled pavilions, the seven-storey pagoda. Every building tells the story of the pioneers who built Swan City.</p>
+                <span class="lp-why-tag">Heritage</span>
+            </div>
+            <div class="lp-why-card lp-why-card--food mk-fade-in mk-fade-in-2">
+                <div class="lp-why-icon-wrap" aria-hidden="true">🍜</div>
+                <h3>Foochow cuisine</h3>
+                <p>Kampua mee at dawn, Kompia from the wood-fired oven, Kolo mee with crispy lard. Sibu's food scene is one of Malaysia's best-kept secrets.</p>
+                <span class="lp-why-tag">Food</span>
+            </div>
+            <div class="lp-why-card lp-why-card--river mk-fade-in mk-fade-in-3">
+                <div class="lp-why-icon-wrap" aria-hidden="true">🚣</div>
+                <h3>Rajang river life</h3>
+                <p>Express boats upriver, fishing villages on stilts, sunrise over the longest river in Malaysia. The Rajang is Sibu's lifeblood and its greatest spectacle.</p>
+                <span class="lp-why-tag">Adventure</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ QUOTE BREAK 1 — Rajang River ═════════════════════════ -->
+<div class="lp-quote-break" style="background-image:url('/Images/rajang-river.jpg');" aria-hidden="true">
+    <div class="lp-quote-break-overlay"></div>
+    <div class="lp-quote-break-body">
+        <span class="lp-quote-tag">Rajang River · Sibu · Sarawak</span>
+        <p class="lp-quote-text">"Malaysia's longest river flows right through Sibu's heart."</p>
+        <p class="lp-quote-attr">Swan City &nbsp;·&nbsp; Sarawak &nbsp;·&nbsp; Borneo</p>
+    </div>
+</div>
+
+<!-- ═══ FEATURED PLACES ════════════════════════════════════════ -->
+@if (Model.FeaturedPlaces.Any())
+{
+    <section class="lp-section lp-section--alt">
+        <div class="lp-container">
+            <div class="lp-section-head">
+                <div>
+                    <span class="lp-section-kicker">Featured spots</span>
+                    <h2 class="lp-section-h2">Most-visited this week</h2>
+                </div>
+                <a href="@Url.Action("Explore","Home")" class="mk-btn-outline-dark">See all places →</a>
+            </div>
+            <div class="mk-grid-3">
+                @foreach (var p in Model.FeaturedPlaces.Take(6))
+                {
+                    var likeCount = Model.LikeCounts.ContainsKey(p.Id) ? Model.LikeCounts[p.Id] : 0;
+                    <a href="@Url.Action("Detail","Place",new{id=p.Id})" class="mk-place-card mk-fade-in">
+                        <div class="mk-place-card-img-wrap">
+                            <img src="@PlaceImageUrl.Resolve(Url, p.ImageUrl)"
+                                 alt="@p.Name in @p.Location"
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='@ph'" />
+                            @if (p.Category != null)
+                            {
+                                <span class="mk-place-card-cat">@p.Category.Icon @p.Category.Name</span>
+                            }
+                        </div>
+                        <div class="mk-place-card-body">
+                            <div class="mk-place-card-name">@p.Name</div>
+                            <div class="mk-place-card-loc">📍 @p.Location</div>
+                            <div class="mk-place-card-meta">
+                                @if (p.Rating > 0)
+                                {<span>⭐ <b>@p.Rating.ToString("F1")</b></span>}
+                                @if (p.VisitCount > 0)
+                                {<span>👥 <b>@p.VisitCount</b> visits</span>}
+                                @if (likeCount > 0)
+                                {<span>❤️ <b>@likeCount</b></span>}
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══ TOP EXPLORERS ══════════════════════════════════════════ -->
+@if (Model.TopThree.Any())
+{
+    <section class="lp-section">
+        <div class="lp-container">
+            <div class="lp-section-head">
+                <div>
+                    <span class="lp-section-kicker">Leaderboard</span>
+                    <h2 class="lp-section-h2">Top explorers</h2>
+                </div>
+                <a href="@Url.Action("Leaderboard","Home")" class="mk-btn-outline-dark">Full leaderboard →</a>
+            </div>
+            <div class="lp-podium">
+                @for (var i = 0; i < Model.TopThree.Count && i < 3; i++)
+                {
+                    var u = Model.TopThree[i];
+                    <div class="lp-podium-card mk-fade-in" data-rank="@(i+1)">
+                        <div class="lp-podium-rank">Rank #@(i+1)</div>
+                        <div class="lp-podium-medal" aria-hidden="true">@(i == 0 ? "🥇" : i == 1 ? "🥈" : "🥉")</div>
+                        <div class="lp-podium-name">@u.Name</div>
+                        <div class="lp-podium-pts"><strong>@u.Points</strong> pts</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══ QUOTE BREAK 2 — Night Market ══════════════════════════ -->
+<div class="lp-quote-break" style="background-image:url('/Images/sibu-night-market.jpg');" aria-hidden="true">
+    <div class="lp-quote-break-overlay"></div>
+    <div class="lp-quote-break-body">
+        <span class="lp-quote-tag">Sibu Night Market</span>
+        <p class="lp-quote-text">"Every street corner hides a dish worth travelling&nbsp;for."</p>
+        <p class="lp-quote-attr">Eat &nbsp;·&nbsp; Explore &nbsp;·&nbsp; Earn points</p>
+    </div>
+</div>
+
+<!-- ═══ GAMES PROMO — dark editorial ══════════════════════════ -->
+<section class="lp-games">
+    <div class="lp-games-inner">
+        <div>
+            <div class="lp-games-eyebrow">🎮 Play to earn</div>
+            <h2 class="lp-games-h2">5 Sibu<br /><em>mini-games</em></h2>
+            <p class="lp-games-sub">
+                Catch Foochow dishes, prep kitchen orders, sprint past obstacles,
+                flip memory tiles, answer trivia. Every win earns points and badges
+                — compete on the global leaderboard.
+            </p>
+            <a href="@Url.Action("Games","Home")" class="mk-btn mk-btn-primary" style="font-size:16px;padding:14px 30px;">
+                Open games hub →
+            </a>
+        </div>
+        <div>
+            <div class="lp-games-tiles" aria-hidden="true">
+                <div class="lp-games-tile">🍜</div>
+                <div class="lp-games-tile">🍳</div>
+                <div class="lp-games-tile">🧠</div>
+                <div class="lp-games-tile">🏃</div>
+                <div class="lp-games-tile">🎯</div>
+                <div class="lp-games-tile" style="font-size:28px;color:rgba(255,255,255,0.22);font-weight:700;font-family:var(--mk-font-display);">+more</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (loggedIn)
+{
+    <!-- ═══ QUICK ACTIONS ══════════════════════════════════════════ -->
+    <section class="lp-section lp-section--alt">
+        <div class="lp-container">
+            <div class="lp-section-head">
+                <div>
+                    <span class="lp-section-kicker">Welcome back@(string.IsNullOrEmpty(userName) ? "" : ", " + userName)</span>
+                    <h2 class="lp-section-h2">Quick actions</h2>
+                </div>
+            </div>
+            <div class="lp-quick-grid">
+                <a href="@Url.Action("Map","Home")" class="lp-quick-card mk-fade-in">
+                    <div class="lp-quick-icon" aria-hidden="true">🗺️</div>
+                    <div class="lp-quick-title">Live Map</div>
+                    <div class="lp-quick-desc">All Sibu spots, one screen.</div>
+                </a>
+                <a href="@Url.Action("Achievements","Home")" class="lp-quick-card mk-fade-in mk-fade-in-1">
+                    <div class="lp-quick-icon" aria-hidden="true">🏆</div>
+                    <div class="lp-quick-title">Badges</div>
+                    <div class="lp-quick-desc">Unlock 8 achievements.</div>
+                </a>
+                <a href="@Url.Action("Profile","Home")" class="lp-quick-card mk-fade-in mk-fade-in-2">
+                    <div class="lp-quick-icon" aria-hidden="true">👤</div>
+                    <div class="lp-quick-title">Profile</div>
+                    <div class="lp-quick-desc">Your stats &amp; visits.</div>
+                </a>
+                <a href="@Url.Action("Architecture","Home")" class="lp-quick-card mk-fade-in mk-fade-in-3">
+                    <div class="lp-quick-icon" aria-hidden="true">🏛️</div>
+                    <div class="lp-quick-title">Architecture</div>
+                    <div class="lp-quick-desc">ERD, OOP, system design.</div>
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+(function () {
+    'use strict';
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    /* ── Scroll-reveal ── */
+    var reveals = Array.prototype.slice.call(document.querySelectorAll('.mk-fade-in'));
+    if (reveals.length && 'IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                    e.target.style.opacity  = '1';
+                    e.target.style.transform = 'none';
+                    obs.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.10, rootMargin: '0px 0px -40px 0px' });
+
+        reveals.forEach(function (el) {
+            var delay = 0;
+            if (el.classList.contains('mk-fade-in-1')) delay = 0.12;
+            else if (el.classList.contains('mk-fade-in-2')) delay = 0.24;
+            else if (el.classList.contains('mk-fade-in-3')) delay = 0.36;
+            el.style.opacity    = '0';
+            el.style.transform  = 'translateY(24px)';
+            el.style.transition = 'opacity 0.65s ease ' + delay + 's, transform 0.65s ease ' + delay + 's';
+            obs.observe(el);
+        });
+    }
+
+    /* ── Parallax on quote-break panels ── */
+    if (isMobile || prefersReduced) return;
+    var breaks = Array.prototype.slice.call(document.querySelectorAll('.lp-quote-break'));
+    if (!breaks.length) return;
+    function tickParallax() {
+        var vh = window.innerHeight;
+        breaks.forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.bottom < -80 || r.top > vh + 80) return;
+            var offset = ((r.top + r.height / 2) - vh / 2) * 0.16;
+            el.style.backgroundPositionY = 'calc(50% + ' + offset.toFixed(1) + 'px)';
+        });
+    }
+    window.addEventListener('scroll', tickParallax, { passive: true });
+    tickParallax();
+}());
+    </script>
+}
+

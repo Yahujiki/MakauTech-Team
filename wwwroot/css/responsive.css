@@ -1,0 +1,527 @@
+﻿/* ============================================================
+   MakauTech — Cross-platform responsive layer
+   Loaded last. Overrides site.css + polish.css at each breakpoint.
+   Breakpoints: 1100px · 960px · 768px · 640px · 480px
+   ============================================================ */
+
+/* ── Global platform fixes ── */
+html {
+    -webkit-text-size-adjust: 100%; /* stop iOS from zooming text */
+    text-size-adjust: 100%;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent; /* remove blue flash on tap (iOS/Android) */
+}
+
+body {
+    overflow-x: hidden; /* prevent horizontal scroll caused by wide children */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+/* Smooth scrolling on iOS (momentum scroll) */
+.main-content,
+.cg-form-panel,
+.sidebar {
+    -webkit-overflow-scrolling: touch;
+}
+/* Minimum touch target — 44×44px (Apple HIG / WCAG 2.5.5) */
+a, button, [role="button"], .sidebar-link, .mk-btn,
+.topbar-login, .topbar-register, .sidebar-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+}
+/* exception: inline text links stay inline */
+p a, .cal-event-body a, .gate-foot a, .cg-register a,
+.cg-back, .gate-back {
+    display: inline;
+    min-height: unset;
+}
+
+/* ── Image quality on high-DPI screens ── */
+img {
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Focus-visible for keyboard nav ── */
+:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ===========================================================
+   ≤ 1100px  — shrink sidebar, tighten hero
+   =========================================================== */
+@media (max-width: 1100px) {
+    .sidebar {
+        width: 240px;
+    }
+
+    .home-hero {
+        padding: clamp(40px, 6vw, 72px) clamp(20px, 4vw, 48px);
+    }
+}
+
+/* ===========================================================
+   ≤ 960px  — sidebar collapses to off-canvas (already in site.css)
+              Additional fixes for tablet layout
+   =========================================================== */
+@media (max-width: 960px) {
+    /* Main content gets full width when sidebar is hidden */
+    .app-main {
+        width: 100%;
+    }
+
+    /* Section spacing tightens */
+    .mk-section {
+        margin: 40px 16px;
+    }
+
+    /* 3-col grid → 2-col on tablet */
+    .mk-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* why-sibu 4-col → 2-col */
+    .why-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Leader strip 3-col stays but cards smaller */
+    .leader-card {
+        padding: 22px 16px;
+    }
+
+    /* Games promo */
+    .games-promo {
+        margin: 48px 0;
+        border-radius: 0;
+    }
+
+    /* Parallax min-height */
+    .mk-parallax {
+        min-height: 240px;
+    }
+
+    /* Home hero art hidden on tablet to save space */
+    .home-hero-art {
+        display: none;
+    }
+
+    .home-hero-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===========================================================
+   ≤ 768px  — mobile landscape / large phone
+   =========================================================== */
+@media (max-width: 768px) {
+    /* ── Section shells ── */
+    .mk-section {
+        margin: 32px 12px;
+    }
+
+    .mk-section-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .mk-section-title {
+        font-size: clamp(20px, 5vw, 28px);
+    }
+
+    /* ── Hero ── */
+    .home-hero {
+        margin: 10px 10px 0;
+        border-radius: 20px;
+    }
+
+    .home-hero-grid {
+        gap: 24px;
+    }
+
+    .mk-hero-title {
+        font-size: clamp(26px, 7vw, 40px);
+    }
+
+    .mk-hero-sub {
+        font-size: 14px;
+    }
+
+    .feature-strip {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .feature-chip {
+        font-size: 11.5px;
+        padding: 5px 11px;
+    }
+
+    .mk-hero-cta {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+        .mk-hero-cta .mk-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+    /* ── Grids ── */
+    .mk-grid-3 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .mk-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .why-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* ── Why cards ── */
+    .why-card {
+        padding: 20px;
+    }
+
+    .why-card-icon {
+        font-size: 28px;
+    }
+
+    /* ── Place cards ── */
+    .mk-place-card {
+        border-radius: 16px;
+    }
+
+    /* ── Leader strip ── */
+    .leader-strip {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .leader-card {
+        padding: 18px 10px;
+    }
+
+    .leader-medal {
+        font-size: 36px;
+    }
+
+    .leader-name {
+        font-size: 13px;
+    }
+
+    .leader-pts {
+        font-size: 11.5px;
+    }
+
+    /* ── Games promo ── */
+    .games-promo {
+        padding: 44px 20px;
+    }
+
+    .games-promo-title {
+        font-size: clamp(22px, 5vw, 32px);
+    }
+
+    .games-promo-sub {
+        font-size: 14px;
+    }
+
+    .games-icons {
+        font-size: 26px;
+        gap: 12px;
+    }
+
+    /* ── Parallax sections ── */
+    .mk-parallax {
+        min-height: 190px;
+        background-attachment: scroll;
+    }
+
+    .mk-parallax-content {
+        padding: 40px 20px;
+    }
+
+    .mk-parallax-quote {
+        font-size: clamp(18px, 4.5vw, 26px);
+    }
+
+    .mk-parallax-sub {
+        font-size: 11px;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .topbar-brand-text .brand-makau,
+    .topbar-brand-text .brand-tech {
+        font-size: 1rem;
+    }
+
+    /* ── Calendar ── */
+    .cal-wrap {
+        padding: 0 12px;
+    }
+
+    /* ── Updates / card sections ── */
+    .mk-card {
+        padding: 18px;
+    }
+
+    /* ── Promo video ── */
+    .promo-video-wrap {
+        padding: 0 8px;
+    }
+
+    /* ── General buttons ── */
+    .mk-btn {
+        font-size: 14px;
+        padding: 11px 20px;
+    }
+}
+
+/* ===========================================================
+   ≤ 640px  — mobile portrait (iPhone SE → standard)
+   =========================================================== */
+@media (max-width: 640px) {
+    /* ── Spacing ── */
+    .mk-section {
+        margin: 24px 8px;
+    }
+
+    /* ── Home hero full-bleed ── */
+    .home-hero {
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .home-hero-grid {
+        padding: 0;
+    }
+
+    /* ── Feature chips: 2 per row ── */
+    .feature-strip {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .feature-chip {
+        text-align: center;
+        justify-content: center;
+    }
+
+    /* ── Grids ── */
+    .mk-grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── Leader strip: stack ── */
+    .leader-strip {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .leader-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        text-align: left;
+    }
+
+    .leader-rank-num {
+        margin-bottom: 0;
+        min-width: 56px;
+    }
+
+    .leader-medal {
+        font-size: 30px;
+        margin-bottom: 0;
+    }
+
+    /* ── Games promo full-bleed ── */
+    .games-promo {
+        margin: 32px 0;
+        border-radius: 0;
+        padding: 36px 16px;
+    }
+
+    .games-icons {
+        font-size: 22px;
+    }
+
+    /* ── Parallax ── */
+    .mk-parallax {
+        min-height: 160px;
+    }
+
+    .mk-parallax-content {
+        padding: 30px 16px;
+    }
+
+    /* ── Cards ── */
+    .mk-card {
+        border-radius: 14px;
+    }
+
+    .mk-place-card {
+        border-radius: 14px;
+    }
+
+    /* ── Why section ── */
+    .why-section {
+        margin: 0 8px;
+        border-radius: 20px;
+    }
+
+    .why-card {
+        padding: 18px;
+    }
+
+    /* ── Section head ── */
+    .mk-section-head {
+        gap: 8px;
+    }
+
+    .mk-btn.mk-btn-ghost {
+        font-size: 13px;
+        padding: 9px 16px;
+    }
+}
+
+/* ===========================================================
+   ≤ 480px  — very small phones (iPhone SE 1st gen, 320px–375px)
+   =========================================================== */
+@media (max-width: 480px) {
+    body {
+        font-size: 15px;
+    }
+
+    /* Section head title */
+    .mk-section-kicker {
+        font-size: 11px;
+    }
+
+    .mk-section-title {
+        font-size: 20px;
+    }
+
+    /* Hero typography */
+    .mk-hero-eyebrow {
+        font-size: 11px;
+    }
+
+    .mk-hero-title {
+        font-size: clamp(24px, 8vw, 34px);
+        line-height: 1.15;
+    }
+
+    .mk-hero-sub {
+        font-size: 13.5px;
+    }
+
+    /* Feature chips 1-per-row on tiny phones */
+    .feature-strip {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Promo video caption */
+    .promo-video-caption {
+        font-size: 12.5px;
+        padding: 0 8px;
+    }
+
+    /* Why cards */
+    .why-card h3 {
+        font-size: 15px;
+    }
+
+    .why-card p {
+        font-size: 13px;
+    }
+
+    /* Games promo */
+    .games-promo-sub {
+        font-size: 13px;
+    }
+
+    /* Topbar logo/text on very small screens */
+    .topbar-brand-text {
+        display: none;
+    }
+}
+
+/* ===========================================================
+   iOS Safari specific
+   =========================================================== */
+@supports (-webkit-touch-callout: none) {
+    /* Prevent double-tap zoom on buttons */
+    button, a {
+        touch-action: manipulation;
+    }
+    /* iOS safe area insets for notched phones */
+    .topbar {
+        padding-top: max(0.65rem, env(safe-area-inset-top));
+        padding-left: max(0.75rem, env(safe-area-inset-left));
+        padding-right: max(0.75rem, env(safe-area-inset-right));
+    }
+
+    .sidebar-bottom {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .cg-form-inner {
+        padding-bottom: max(56px, env(safe-area-inset-bottom));
+    }
+    /* Fix 100vh issue on iOS (bar hides/shows and changes vh) */
+    .city-gate {
+        height: -webkit-fill-available;
+    }
+}
+
+/* ===========================================================
+   Dark mode — cross-platform colour fixes
+   =========================================================== */
+[data-theme="dark"] {
+    color-scheme: dark; /* tells iOS/Android to render scrollbars etc in dark */
+}
+
+    [data-theme="dark"] .why-card {
+        background: var(--mk-night-800);
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    [data-theme="dark"] .mk-parallax::before {
+        background: linear-gradient(135deg, rgba(6,20,12,0.80) 0%, rgba(0,0,0,0.55) 100%);
+    }
+
+/* ===========================================================
+   Android Chrome — smooth scroll & tap
+   =========================================================== */
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Prevent text selection flash on tap (Android) */
+.sidebar-link, .mk-btn, .topbar-login, .topbar-register {
+    user-select: none;
+    -webkit-user-select: none;
+}

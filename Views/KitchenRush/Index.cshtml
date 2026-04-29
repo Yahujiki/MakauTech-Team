@@ -1,0 +1,388 @@
+﻿@{
+    ViewData["Title"] = "Kitchen Rush";
+    var krFirstFree = ViewBag.FirstGameFree == true;
+    var krCost = ViewBag.PlayCost ?? 20;
+    var krBalance = ViewBag.UserPoints ?? 0;
+}
+
+@section Styles {
+    <style>
+        body {
+            background: #030d06 !important;
+        }
+
+        .main-content {
+            background: #030d06;
+        }
+
+        .footer {
+            display: none;
+        }
+    </style>
+}
+
+<div class="kr-page">
+    <!-- HERO HEADER -->
+    <div class="kr-hero">
+        <div class="kr-hero-icon">🍳</div>
+        <h1 class="kr-hero-title">Kitchen Rush</h1>
+        <p class="kr-hero-sub">Memorise the dish order — tap the right ingredient before time runs out!</p>
+        <p style="opacity:0.85;font-size:0.92rem;color:rgba(226,232,240,0.75);margin:0;">🎲 <strong>Quick fun:</strong> Orders get trickier round by round — stay calm when the timer flashes red!</p>
+        <div class="kr-hero-tags">
+            <span class="kr-tag kr-tag-free">🪙 @krCost pts to play</span>
+            <span class="kr-tag kr-tag-speed">⚡ Speed Challenge</span>
+            <span class="kr-tag kr-tag-pts">Earn up to 40 pts</span>
+        </div>
+    </div>
+
+    <div class="kr-nav">
+        <a asp-controller="Home" asp-action="Games" class="kr-btn-back">← Games</a>
+        <a asp-controller="FoodCatch" asp-action="Index" class="kr-btn-other">🍜 Food Catch</a>
+        <a asp-controller="Memory" asp-action="Index" class="kr-btn-other">🧠 Memory</a>
+        <a asp-controller="Home" asp-action="Profile" class="kr-btn-profile">👤 @krBalance pts</a>
+    </div>
+
+    <!-- PAY SCREEN -->
+    <div id="krPayScreen" class="bl-pay-screen">
+        <div class="bl-pay-card">
+            <div style="font-size:3.5rem; margin-bottom:0.5rem;">🍳</div>
+            <h2>Kitchen Rush</h2>
+            <p>Memorise the dish order, then tap the correct ingredients in sequence before the timer runs out!</p>
+            <div class="bl-legend">
+                <span>🍜 Kolo Mee</span><span>🍝 Kampua</span><span>🥐 Kompia</span>
+                <span>🍲 Laksa</span><span>🧆 Falafel</span><span>🦀 Crab</span>
+            </div>
+            <div class="bl-pay-cost">
+                @if (krFirstFree)
+                {
+                    <span>First Game</span>
+                    <strong style="color:#4caf50;">🎁 FREE!</strong>
+                }
+                else
+                {
+                    <span>Entry Fee</span>
+                    <strong>🪙 @krCost pts</strong>
+                }
+            </div>
+            <p style="font-size:0.85rem;color:var(--text-light);margin:0.4rem 0;">Balance: <strong id="krPayBalance">@krBalance</strong> pts</p>
+            <button id="krBtnPay" class="bl-btn-pay" style="background:linear-gradient(135deg,#e65100,#ff8f00);">@(krFirstFree ? "🎁 Play Free!" : "🍳 Pay & Play")</button>
+            <p id="krPayError" style="color:#e53935;font-weight:600;margin-top:0.5rem;display:none;"></p>
+        </div>
+    </div>
+
+    <div id="krGameMain" style="display:none;">
+        <div class="kr-main">
+            <!-- HOW TO PLAY -->
+            <div class="kr-howto" id="krHowto">
+                <h3>🧑‍🍳 How to cook:</h3>
+                <ol>
+                    <li>Study the <strong>dish order</strong> shown at the top</li>
+                    <li>Tap the <strong>correct emoji</strong> from the grid — in sequence</li>
+                    <li>Miss or tap wrong? You lose a <strong>❤️ life</strong></li>
+                    <li>Complete more dishes to earn more <strong>points!</strong></li>
+                </ol>
+            </div>
+
+            <!-- GAME CARD -->
+            <div class="kr-card">
+                <!-- HUD -->
+                <div class="kr-hud">
+                    <div class="kr-hud-item">
+                        <span class="kr-hud-icon">❤️</span>
+                        <span id="krLives" class="kr-hud-val">3</span>
+                    </div>
+                    <div class="kr-hud-item kr-hud-score">
+                        <span class="kr-hud-icon">⭐</span>
+                        <span id="krScore" class="kr-hud-val">0</span>
+                    </div>
+                    <div class="kr-hud-item">
+                        <span class="kr-hud-icon">⏱️</span>
+                        <span id="krTime" class="kr-hud-val">45</span>
+                        <span class="kr-hud-unit">s</span>
+                    </div>
+                </div>
+
+                <!-- ORDER DISPLAY -->
+                <div class="kr-order-box">
+                    <div class="kr-order-label">Current Order</div>
+                    <div class="kr-order-name" id="krDishName">Waiting...</div>
+                    <div class="kr-order-seq" id="krOrderSeq">🍜 → 🥬 → 🌶️</div>
+                    <div class="kr-order-hint" id="krOrderHint">Press Start to begin cooking!</div>
+                    <!-- Progress dots -->
+                    <div class="kr-step-dots" id="krStepDots"></div>
+                </div>
+
+                <!-- INGREDIENT GRID -->
+                <div class="kr-grid" id="krGrid"></div>
+
+                <!-- GAME OVER OVERLAY -->
+                <div class="kr-over" id="krOver" style="display:none;">
+                    <div class="kr-over-emoji" id="krOverEmoji">👨‍🍳</div>
+                    <h2 class="kr-over-title" id="krOverTitle">Kitchen Closed!</h2>
+                    <div class="kr-over-stats">
+                        <div class="kr-stat"><span id="krFinalScore">0</span><small>Score</small></div>
+                        <div class="kr-stat"><span id="krFinalDishes">0</span><small>Dishes</small></div>
+                    </div>
+                    <p class="kr-over-pts" id="krOverPts"></p>
+                    <button type="button" id="krBtnReplay" class="kr-btn-start">🔄 Cook Again</button>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="kr-actions">
+                    <button type="button" id="krBtnStart" class="kr-btn-start">🍳 Start Cooking!</button>
+                    <button type="button" id="krBtnRestart" class="kr-btn-restart">↺ Restart</button>
+                </div>
+            </div>
+
+            <!-- STREAK BADGE -->
+            <div class="kr-streak" id="krStreak" style="display:none;">
+                🔥 <span id="krStreakNum">0</span> dish streak!
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+(function () {
+    // ── DATA ──────────────────────────────────────────
+    const ORDERS = [
+        { name: 'Kolo Mee',    seq: ['🍜', '🥬', '🌶️'],      pts: [1, 2, 3] },
+        { name: 'Laksa',       seq: ['🍲', '🦐', '🌶️'],      pts: [1, 2, 3] },
+        { name: 'Kompia',      seq: ['🥐', '🧈', '🍯'],      pts: [1, 2, 3] },
+        { name: 'Kampua',      seq: ['🍝', '🧄', '🥬'],      pts: [1, 2, 3] },
+        { name: 'Nasi Goreng', seq: ['🍚', '🥚', '🧄', '🌶️'], pts: [1, 1, 2, 3] },
+        { name: 'Mee Goreng',  seq: ['🍝', '🥚', '🧅', '🌶️'], pts: [1, 1, 2, 3] },
+    ];
+    const ING_POOL = ['🍜','🍝','🥐','🍲','🥬','🌶️','🦐','🧄','🧈','🍯','🍋','🥚','🍚','🧅','🫚'];
+
+    // ── STATE ─────────────────────────────────────────
+    let lives, score, timeLeft, running, order, stepIdx, dishes;
+    let streak, timer, spawnTimer;
+
+    // ── DOM ───────────────────────────────────────────
+    const livesEl  = document.getElementById('krLives');
+    const scoreEl  = document.getElementById('krScore');
+    const timeEl   = document.getElementById('krTime');
+    const seqEl    = document.getElementById('krOrderSeq');
+    const nameEl   = document.getElementById('krDishName');
+    const hintEl   = document.getElementById('krOrderHint');
+    const dotsEl   = document.getElementById('krStepDots');
+    const gridEl   = document.getElementById('krGrid');
+    const overEl   = document.getElementById('krOver');
+    const streakEl = document.getElementById('krStreak');
+    const streakNum= document.getElementById('krStreakNum');
+    const ptsEl    = document.getElementById('krOverPts');
+
+    function updateHud() {
+        livesEl.textContent = lives;
+        scoreEl.textContent = score;
+        timeEl.textContent  = Math.max(0, Math.ceil(timeLeft));
+        livesEl.style.color = lives <= 1 ? '#e53935' : '';
+    }
+
+    function pickOrder() {
+        order   = ORDERS[Math.floor(Math.random() * ORDERS.length)];
+        stepIdx = 0;
+        nameEl.textContent = order.name;
+        seqEl.textContent  = order.seq.join(' → ');
+        hintEl.textContent = 'Tap: ' + order.seq[0];
+        renderDots();
+        spawnGrid();
+    }
+
+    function renderDots() {
+        dotsEl.innerHTML = '';
+        order.seq.forEach((_, i) => {
+            const d = document.createElement('span');
+            d.className = 'kr-dot' + (i < stepIdx ? ' done' : i === stepIdx ? ' active' : '');
+            dotsEl.appendChild(d);
+        });
+    }
+
+    function spawnGrid() {
+        if (!running) return;
+        const need = order.seq[stepIdx];
+        const opts = new Set([need]);
+        while (opts.size < 9) opts.add(ING_POOL[Math.floor(Math.random() * ING_POOL.length)]);
+        const arr = Array.from(opts).sort(() => Math.random() - 0.5);
+
+        gridEl.innerHTML = '';
+        arr.forEach(emoji => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'kr-tile';
+            btn.textContent = emoji;
+            btn.addEventListener('click', () => tap(emoji, btn));
+            gridEl.appendChild(btn);
+        });
+
+        // Auto-fail after 2s (harder as time progresses)
+        const delay = Math.max(900, 2000 - (45 - timeLeft) * 15);
+        if (spawnTimer) clearTimeout(spawnTimer);
+        spawnTimer = setTimeout(() => {
+            if (!running) return;
+            gridEl.querySelectorAll('.kr-tile').forEach(b => b.disabled = true);
+            flashHud('miss');
+            lives--;
+            updateHud();
+            if (lives <= 0) { endGame(); return; }
+            hintEl.textContent = '⏰ Too slow! Tap faster next time.';
+            setTimeout(() => { if (running) spawnGrid(); }, 600);
+        }, delay);
+    }
+
+    function tap(emoji, btn) {
+        if (!running) return;
+        clearTimeout(spawnTimer);
+        const need = order.seq[stepIdx];
+        gridEl.querySelectorAll('.kr-tile').forEach(b => b.disabled = true);
+
+        if (emoji === need) {
+            btn.classList.add('kr-tile-ok');
+            score += order.pts[stepIdx] || 1;
+            stepIdx++;
+            MakauSound.catch();
+            if (stepIdx >= order.seq.length) {
+                // Dish complete!
+                score += 5;
+                dishes++;
+                streak++;
+                MakauSound.combo();
+                updateStreak();
+                updateHud();
+                hintEl.textContent = '✅ Dish complete! +5 bonus';
+                setTimeout(() => { if (running) pickOrder(); }, 700);
+            } else {
+                updateHud();
+                hintEl.textContent = 'Next: ' + order.seq[stepIdx];
+                renderDots();
+                setTimeout(() => { if (running) spawnGrid(); }, 400);
+            }
+        } else {
+            btn.classList.add('kr-tile-bad');
+            MakauSound.hazard();
+            lives--;
+            streak = 0;
+            updateStreak();
+            updateHud();
+            flashHud('miss');
+            if (lives <= 0) { endGame(); return; }
+            hintEl.textContent = '❌ Wrong! Try: ' + order.seq[stepIdx];
+            setTimeout(() => { if (running) spawnGrid(); }, 500);
+        }
+    }
+
+    function flashHud(type) {
+        const el = document.querySelector('.kr-hud');
+        el.classList.add(type === 'miss' ? 'kr-shake' : 'kr-flash');
+        setTimeout(() => el.classList.remove('kr-shake', 'kr-flash'), 400);
+    }
+
+    function updateStreak() {
+        if (streak >= 2) {
+            streakEl.style.display = 'block';
+            streakNum.textContent = streak;
+        } else {
+            streakEl.style.display = 'none';
+        }
+    }
+
+    function endGame() {
+        running = false;
+        if (timer) clearInterval(timer);
+        if (spawnTimer) clearTimeout(spawnTimer);
+        gridEl.querySelectorAll('.kr-tile').forEach(b => b.disabled = true);
+        MakauSound.gameOver();
+
+        document.getElementById('krOver').style.display = 'flex';
+        document.getElementById('krBtnStart').disabled = true;
+        document.getElementById('krFinalScore').textContent  = score;
+        document.getElementById('krFinalDishes').textContent = dishes;
+        const emoji = score >= 40 ? '🏆' : score >= 20 ? '🎉' : score >= 10 ? '👨‍🍳' : '😅';
+        document.getElementById('krOverEmoji').textContent = emoji;
+        const title = score >= 40 ? 'Master Chef!' : score >= 20 ? 'Great Cook!' : score >= 10 ? 'Nice Try!' : 'Kitchen Closed!';
+        document.getElementById('krOverTitle').textContent = title;
+        ptsEl.textContent = '';
+
+        if (score > 0) {
+            ((window.MakauSecurity && MakauSecurity.csrfFetch) ? MakauSecurity.csrfFetch : fetch)('/KitchenRush/SubmitScore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ score: score })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) ptsEl.textContent = '+' + d.pointsEarned + ' pts added! Total: ' + d.totalPoints + ' pts';
+                else ptsEl.textContent = 'Could not save — try again.';
+            })
+            .catch(() => { ptsEl.textContent = 'Offline? Points not saved.'; });
+        } else {
+            ptsEl.textContent = 'Score some points next round!';
+        }
+    }
+
+    function startGame() {
+        lives = 3; score = 0; timeLeft = 45; running = true; dishes = 0; streak = 0;
+        overEl.style.display = 'none';
+        document.getElementById('krHowto').style.display = 'none';
+        document.getElementById('krBtnStart').disabled = true;
+        streakEl.style.display = 'none';
+        updateHud();
+        if (timer) clearInterval(timer);
+        timer = setInterval(() => {
+            timeLeft -= 1;
+            updateHud();
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+        pickOrder();
+    }
+
+    function resetGame() {
+        if (timer) clearInterval(timer);
+        if (spawnTimer) clearTimeout(spawnTimer);
+        running = false;
+        overEl.style.display = 'none';
+        document.getElementById('krBtnStart').disabled = false;
+        document.getElementById('krHowto').style.display = 'block';
+        lives = 3; score = 0; timeLeft = 45; dishes = 0; streak = 0;
+        streakEl.style.display = 'none';
+        updateHud();
+        nameEl.textContent = 'Waiting...';
+        seqEl.textContent  = '🍜 → 🥬 → 🌶️';
+        hintEl.textContent = 'Press Start to begin cooking!';
+        dotsEl.innerHTML   = '';
+        gridEl.innerHTML   = '';
+    }
+
+    document.getElementById('krBtnStart').addEventListener('click', () => { MakauSound.pay && MakauSound.pay(); startGame(); });
+    document.getElementById('krBtnRestart').addEventListener('click', () => { MakauSound.click && MakauSound.click(); resetGame(); });
+    document.getElementById('krBtnReplay').addEventListener('click', () => { MakauSound.pay && MakauSound.pay(); overEl.style.display = 'none'; startGame(); });
+
+    resetGame();
+})();
+
+// ── Kitchen Rush pay-to-play ─────────────────────
+(function(){
+    let krBalance = @krBalance;
+    document.getElementById('krBtnPay').addEventListener('click', function(){
+        const btn = this;
+        btn.disabled = true; btn.textContent = '⏳ Processing...';
+        ((window.MakauSecurity && MakauSecurity.csrfFetch) ? MakauSecurity.csrfFetch : fetch)('/KitchenRush/PayToPlay', { method: 'POST' })
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    krBalance = d.remainingPoints;
+                    document.getElementById('krPayScreen').style.display = 'none';
+                    document.getElementById('krGameMain').style.display = 'block';
+                } else {
+                    document.getElementById('krPayError').textContent = d.message || 'Not enough points!';
+                    document.getElementById('krPayError').style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = '🍳 Pay & Play';
+                }
+            }).catch(() => { btn.disabled = false; });
+    });
+})();
+    </script>
+}
+

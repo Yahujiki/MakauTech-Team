@@ -1,0 +1,761 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+}
+
+@section Styles {
+    <style>
+        body {
+            background: #030d06 !important;
+        }
+
+        .main-content {
+            background: #030d06;
+        }
+
+        /* ============ LAYOUT ============ */
+        .lg-page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+            color: #e5e7eb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+        }
+
+        /* ============ HEADER ============ */
+        .lg-header {
+            background: linear-gradient(135deg, #052e1a, #0a3d24 50%, #082314);
+            border: 1px solid rgba(16,185,129,0.18);
+            border-radius: 20px;
+            padding: 2rem 2.25rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .lg-header::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse 70% 80% at 100% 0%, rgba(16,185,129,0.18) 0%, transparent 70%);
+                pointer-events: none;
+            }
+
+        .lg-header-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lg-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.32);
+            color: #6ee7b7;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+
+        .lg-title {
+            font-size: clamp(1.85rem, 4vw, 2.7rem);
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: #ffffff;
+            margin: 0 0 0.5rem;
+            line-height: 1.1;
+        }
+
+        .lg-subtitle {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .lg-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.55);
+        }
+
+        .lg-meta-item strong {
+            color: #6ee7b7;
+            font-weight: 700;
+        }
+
+        .lg-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .lg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+            .lg-btn:hover {
+                background: rgba(16,185,129,0.18);
+                border-color: rgba(16,185,129,0.4);
+                color: #6ee7b7;
+            }
+
+        .lg-btn--primary {
+            background: linear-gradient(135deg,#10b981,#059669);
+            border-color: transparent;
+            color: #ffffff;
+        }
+
+            .lg-btn--primary:hover {
+                filter: brightness(1.1);
+            }
+
+        /* ============ TWO-COLUMN BODY ============ */
+        .lg-body {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @@media (max-width: 980px) {
+            .lg-body {
+                grid-template-columns: 1fr;
+            }
+
+            .lg-toc {
+                position: static !important;
+            }
+        }
+
+        /* ============ TABLE OF CONTENTS ============ */
+        .lg-toc {
+            position: sticky;
+            top: 1.5rem;
+            background: #0a1812;
+            border: 1px solid rgba(16,185,129,0.15);
+            border-radius: 16px;
+            padding: 1.25rem;
+            font-size: 0.9rem;
+        }
+
+        .lg-toc-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #6ee7b7;
+            margin: 0 0 0.85rem;
+        }
+
+        .lg-toc ol {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            counter-reset: toc;
+        }
+
+        .lg-toc li {
+            counter-increment: toc;
+            margin: 0;
+        }
+
+        .lg-toc a {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 8px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            line-height: 1.35;
+            transition: all 0.15s;
+        }
+
+            .lg-toc a::before {
+                content: counter(toc, decimal-leading-zero);
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: rgba(110,231,183,0.7);
+                flex-shrink: 0;
+            }
+
+            .lg-toc a:hover {
+                background: rgba(16,185,129,0.1);
+                color: #ffffff;
+            }
+
+            .lg-toc a.is-active {
+                background: rgba(16,185,129,0.15);
+                color: #6ee7b7;
+                font-weight: 700;
+            }
+
+        /* ============ MAIN CONTENT ============ */
+        .lg-content {
+            background: #0a1812;
+            border: 1px solid rgba(16,185,129,0.12);
+            border-radius: 16px;
+            padding: 2.5rem 2.75rem 3rem;
+        }
+
+        .lg-section {
+            margin-bottom: 2.25rem;
+            scroll-margin-top: 1.5rem;
+        }
+
+            .lg-section:last-child {
+                margin-bottom: 0;
+            }
+
+        .lg-section-num {
+            display: inline-block;
+            background: rgba(16,185,129,0.12);
+            color: #6ee7b7;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.6rem;
+        }
+
+        .lg-h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.015em;
+            margin: 0 0 1rem;
+            line-height: 1.25;
+        }
+
+        .lg-content p {
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin: 0 0 0.85rem;
+        }
+
+            .lg-content p:last-child {
+                margin-bottom: 0;
+            }
+
+        .lg-content ul {
+            margin: 0.5rem 0 1rem;
+            padding-left: 1.2rem;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .lg-content li {
+            line-height: 1.7;
+            margin-bottom: 0.35rem;
+        }
+
+        .lg-content strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .lg-content a {
+            color: #6ee7b7;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(110,231,183,0.4);
+        }
+
+            .lg-content a:hover {
+                border-bottom-color: #6ee7b7;
+            }
+
+        .lg-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(16,185,129,0.25), transparent);
+            margin: 2rem 0;
+            border: 0;
+        }
+
+        /* Data table */
+        .lg-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.88rem;
+            border: 1px solid rgba(16,185,129,0.18);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+            .lg-data-table thead {
+                background: rgba(16,185,129,0.1);
+            }
+
+            .lg-data-table th, .lg-data-table td {
+                padding: 0.7rem 0.85rem;
+                text-align: left;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                vertical-align: top;
+            }
+
+            .lg-data-table th {
+                font-weight: 800;
+                color: #6ee7b7;
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+
+            .lg-data-table td {
+                color: rgba(255,255,255,0.78);
+            }
+
+            .lg-data-table tr:last-child td {
+                border-bottom: 0;
+            }
+
+            .lg-data-table tr:hover td {
+                background: rgba(16,185,129,0.04);
+            }
+
+        /* Callout boxes */
+        .lg-callout {
+            background: rgba(16,185,129,0.06);
+            border-left: 3px solid #10b981;
+            padding: 0.9rem 1.1rem;
+            border-radius: 0 10px 10px 0;
+            margin: 0.85rem 0;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.78);
+        }
+
+        .lg-callout--warn {
+            background: rgba(245,158,11,0.06);
+            border-left-color: #f59e0b;
+        }
+
+        .lg-callout strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #ffffff;
+        }
+
+        /* Print styles */
+        @@media print {
+            body, .main-content {
+                background: #ffffff !important;
+            }
+
+            .lg-page, .lg-content, .lg-header, .lg-toc {
+                color: #111 !important;
+                background: #fff !important;
+                border: none !important;
+            }
+
+            .lg-toc, .lg-actions {
+                display: none !important;
+            }
+
+            .lg-body {
+                grid-template-columns: 1fr !important;
+            }
+
+            .lg-h2, .lg-title {
+                color: #111 !important;
+            }
+
+            .lg-content p, .lg-content ul, .lg-data-table td {
+                color: #333 !important;
+            }
+        }
+    </style>
+}
+
+<div class="lg-page">
+
+    <!-- ============ HEADER ============ -->
+    <header class="lg-header">
+        <div class="lg-header-inner">
+            <span class="lg-eyebrow">🔒 Legal · Privacy Policy</span>
+            <h1 class="lg-title">Privacy Policy</h1>
+            <p class="lg-subtitle">
+                This Privacy Policy explains what personal data MakauTech collects about you,
+                how we use it, how it is protected, and the rights you have under the
+                <strong style="color:#6ee7b7">Personal Data Protection Act 2010 (Malaysia)</strong>.
+            </p>
+            <div class="lg-meta-row">
+                <span class="lg-meta-item"><strong>Effective Date:</strong> 1 April 2026</span>
+                <span class="lg-meta-item"><strong>Last Updated:</strong> 28 April 2026</span>
+                <span class="lg-meta-item"><strong>Version:</strong> 2026-04</span>
+                <span class="lg-meta-item"><strong>Compliance:</strong> PDPA 2010 (Malaysia)</span>
+            </div>
+            <div class="lg-actions">
+                <button type="button" class="lg-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+                <a class="lg-btn" asp-action="Terms" asp-controller="Home">📋 Terms of Service</a>
+                <a class="lg-btn lg-btn--primary" asp-action="Settings" asp-controller="Home">← Back to Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ BODY ============ -->
+    <div class="lg-body">
+
+        <!-- ============ TABLE OF CONTENTS ============ -->
+        <aside class="lg-toc" aria-label="Table of contents">
+            <p class="lg-toc-title">Contents</p>
+            <ol>
+                <li><a href="#p1" class="lg-toc-link">Overview &amp; Scope</a></li>
+                <li><a href="#p2" class="lg-toc-link">Data We Collect</a></li>
+                <li><a href="#p3" class="lg-toc-link">How We Use Your Data</a></li>
+                <li><a href="#p4" class="lg-toc-link">Lawful Basis for Processing</a></li>
+                <li><a href="#p5" class="lg-toc-link">Data Sharing &amp; Disclosure</a></li>
+                <li><a href="#p6" class="lg-toc-link">Cookies &amp; Sessions</a></li>
+                <li><a href="#p7" class="lg-toc-link">Data Retention</a></li>
+                <li><a href="#p8" class="lg-toc-link">Data Security</a></li>
+                <li><a href="#p9" class="lg-toc-link">International Data Transfers</a></li>
+                <li><a href="#p10" class="lg-toc-link">Your Rights (PDPA)</a></li>
+                <li><a href="#p11" class="lg-toc-link">Children's Privacy</a></li>
+                <li><a href="#p12" class="lg-toc-link">Third-Party Links</a></li>
+                <li><a href="#p13" class="lg-toc-link">Changes to This Policy</a></li>
+                <li><a href="#p14" class="lg-toc-link">Contact &amp; Data Controller</a></li>
+            </ol>
+        </aside>
+
+        <!-- ============ MAIN CONTENT ============ -->
+        <main class="lg-content">
+
+            <section class="lg-section" id="p1">
+                <span class="lg-section-num">SECTION 01</span>
+                <h2 class="lg-h2">Overview &amp; Scope</h2>
+                <p>MakauTech (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) respects your privacy and is committed to protecting your personal data. This Privacy Policy applies to all visitors, registered users, and administrators of the MakauTech website and any related services.</p>
+                <p>By using the Service, you acknowledge that you have read and understood this Policy. If you disagree with any part of it, please discontinue your use of the Service.</p>
+                <div class="lg-callout">
+                    <strong>Academic Project Notice</strong>
+                    MakauTech operates as a coursework project at the University of Technology Sarawak. The platform is built and maintained for educational purposes and demonstrates compliance with industry-standard privacy practices.
+                </div>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p2">
+                <span class="lg-section-num">SECTION 02</span>
+                <h2 class="lg-h2">Data We Collect</h2>
+                <p>We collect only the data we genuinely need to operate the Service. This is summarised below:</p>
+
+                <table class="lg-data-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Examples</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Account Data</strong></td>
+                            <td>Name, email address, hashed password (BCrypt)</td>
+                            <td>Provided by you at registration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Profile Data</strong></td>
+                            <td>Profile photo, travel preferences, interests, badges</td>
+                            <td>Provided by you in Settings / Onboarding</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Activity Data</strong></td>
+                            <td>Reviews, ratings, place likes, game scores, points</td>
+                            <td>Generated through your use of the Service</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Technical Data</strong></td>
+                            <td>Session ID, IP address (for rate limiting), browser type</td>
+                            <td>Automatically collected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security Data</strong></td>
+                            <td>Failed login counter, last login timestamp, lockout status</td>
+                            <td>Automatically collected</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Consent Data</strong></td>
+                            <td>Terms version accepted, acceptance timestamp</td>
+                            <td>Recorded at registration / login</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>We do <strong>NOT</strong> collect: government IDs, payment card numbers, biometric data, real-time GPS location, or contacts/phone book data.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p3">
+                <span class="lg-section-num">SECTION 03</span>
+                <h2 class="lg-h2">How We Use Your Data</h2>
+                <p>Your data is used strictly to:</p>
+                <ul>
+                    <li>Authenticate you and maintain your sign-in session;</li>
+                    <li>Display your profile, points, badges, and activity history;</li>
+                    <li>Show your reviews and likes to other users on relevant place pages;</li>
+                    <li>Operate gamified features such as leaderboards and mini-games;</li>
+                    <li>Detect and prevent abuse (e.g., brute-force login attempts, spam reviews);</li>
+                    <li>Comply with legal obligations and respond to lawful requests.</li>
+                </ul>
+                <p>We <strong>do not sell, rent, or trade</strong> your personal data to any third party for marketing purposes.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p4">
+                <span class="lg-section-num">SECTION 04</span>
+                <h2 class="lg-h2">Lawful Basis for Processing</h2>
+                <p>Under the PDPA 2010 (Malaysia), we process your personal data on the following lawful bases:</p>
+                <ul>
+                    <li><strong>Consent</strong> &mdash; You provide explicit consent by ticking the agreement checkbox during sign-up or sign-in.</li>
+                    <li><strong>Contract performance</strong> &mdash; Processing is necessary to deliver the Service you have requested (e.g., login, posting reviews).</li>
+                    <li><strong>Legitimate interest</strong> &mdash; To prevent fraud, abuse, and security threats to the platform and its users.</li>
+                </ul>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p5">
+                <span class="lg-section-num">SECTION 05</span>
+                <h2 class="lg-h2">Data Sharing &amp; Disclosure</h2>
+                <p>We share your personal data only in limited circumstances:</p>
+                <ul>
+                    <li><strong>With other users</strong>, where you choose to publish content (reviews, likes, profile name and photo);</li>
+                    <li><strong>With service providers</strong> we rely on for hosting (Oracle Cloud Infrastructure) and CDN/security (Cloudflare, Inc.), bound by their respective security commitments;</li>
+                    <li><strong>With academic supervisors</strong> at UTS for the purpose of project assessment;</li>
+                    <li><strong>When required by law</strong> &mdash; for example, to comply with a court order or lawful regulatory request.</li>
+                </ul>
+                <p>We never disclose your password hash to anyone outside of the application logic that verifies your sign-in.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p6">
+                <span class="lg-section-num">SECTION 06</span>
+                <h2 class="lg-h2">Cookies &amp; Sessions</h2>
+                <p>We use a small number of strictly necessary cookies and session storage entries:</p>
+
+                <table class="lg-data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Purpose</th>
+                            <th>Lifetime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.AspNetCore.Session</code></td>
+                            <td>Keeps you signed in across pages</td>
+                            <td>Session (deleted on logout / browser close)</td>
+                        </tr>
+                        <tr>
+                            <td><code>.AspNetCore.Antiforgery</code></td>
+                            <td>CSRF (cross-site request forgery) protection</td>
+                            <td>Session</td>
+                        </tr>
+                        <tr>
+                            <td><code>cf_clearance</code></td>
+                            <td>Cloudflare bot &amp; DDoS protection</td>
+                            <td>Up to 30 days (set by Cloudflare)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>We do <strong>NOT</strong> use any third-party advertising, analytics, retargeting, or social-media tracking cookies.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p7">
+                <span class="lg-section-num">SECTION 07</span>
+                <h2 class="lg-h2">Data Retention</h2>
+                <p>We retain your personal data only for as long as necessary to fulfil the purposes stated in this Policy:</p>
+                <ul>
+                    <li><strong>Account data</strong> &mdash; until you request account closure;</li>
+                    <li><strong>Reviews &amp; activity</strong> &mdash; remain visible until removed by you, an administrator, or upon account closure;</li>
+                    <li><strong>Security logs</strong> &mdash; retained for up to 90 days;</li>
+                    <li><strong>Failed login attempts</strong> &mdash; reset on successful login or after the lockout period expires.</li>
+                </ul>
+                <p>The MakauTech database may be archived or anonymised when the academic project concludes its active maintenance period.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p8">
+                <span class="lg-section-num">SECTION 08</span>
+                <h2 class="lg-h2">Data Security</h2>
+                <p>We implement reasonable technical and organisational measures to protect your data:</p>
+                <ul>
+                    <li><strong>Password hashing</strong> with BCrypt (work factor 12) &mdash; we never store your password in plain text;</li>
+                    <li><strong>HTTPS/TLS encryption</strong> for all traffic via Cloudflare;</li>
+                    <li><strong>Anti-CSRF tokens</strong> on all state-changing requests;</li>
+                    <li><strong>Rate limiting</strong> on the login endpoint to mitigate brute-force attacks;</li>
+                    <li><strong>Account lockout</strong> after 5 failed login attempts;</li>
+                    <li><strong>Parameterised database queries</strong> via Entity Framework Core to prevent SQL injection;</li>
+                    <li><strong>Restricted firewall rules</strong> on the Oracle Cloud server.</li>
+                </ul>
+                <div class="lg-callout lg-callout--warn">
+                    <strong>No System Is Perfectly Secure</strong>
+                    Despite our safeguards, no online service can guarantee absolute security. Please use a strong, unique password and avoid reusing passwords from other services.
+                </div>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p9">
+                <span class="lg-section-num">SECTION 09</span>
+                <h2 class="lg-h2">International Data Transfers</h2>
+                <p>Your data is stored on servers operated by <strong>Oracle Cloud Infrastructure</strong> in the Malaysia West (Kulai) region, which is within Malaysia. Cloudflare may temporarily route requests through global edge locations for performance and DDoS protection &mdash; this routing does not store your personal account data outside Malaysia.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p10">
+                <span class="lg-section-num">SECTION 10</span>
+                <h2 class="lg-h2">Your Rights Under the PDPA</h2>
+                <p>Under the Personal Data Protection Act 2010 (Malaysia), you have the following rights with respect to your personal data:</p>
+                <ul>
+                    <li><strong>Right to Access</strong> &mdash; Request a copy of the personal data we hold about you;</li>
+                    <li><strong>Right to Correction</strong> &mdash; Request correction of inaccurate or incomplete data;</li>
+                    <li><strong>Right to Withdraw Consent</strong> &mdash; Withdraw your consent at any time, subject to legal or contractual restrictions;</li>
+                    <li><strong>Right to Limit Processing</strong> &mdash; Request that we limit how we process your data;</li>
+                    <li><strong>Right to Lodge a Complaint</strong> &mdash; Submit a complaint to the Personal Data Protection Department of Malaysia (<a href="https://www.pdp.gov.my" target="_blank" rel="noopener">pdp.gov.my</a>) if you believe your rights have been violated.</li>
+                </ul>
+                <p>To exercise any of these rights, you may update your details directly in the <a asp-action="Settings" asp-controller="Home">Settings</a> page, or contact the project lead listed in Section 14.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p11">
+                <span class="lg-section-num">SECTION 11</span>
+                <h2 class="lg-h2">Children's Privacy</h2>
+                <p>MakauTech is not intended for children under <strong>13 years of age</strong>. We do not knowingly collect personal data from children under 13. If you believe a child has registered an account, please contact us so the account can be removed.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p12">
+                <span class="lg-section-num">SECTION 12</span>
+                <h2 class="lg-h2">Third-Party Links</h2>
+                <p>Some pages may include links to external websites (e.g., Google Maps, social media). We are not responsible for the privacy practices of those sites. Please review their respective privacy policies before sharing personal data with them.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p13">
+                <span class="lg-section-num">SECTION 13</span>
+                <h2 class="lg-h2">Changes to This Policy</h2>
+                <p>We may update this Privacy Policy from time to time. The &ldquo;Last Updated&rdquo; date and version number at the top of this page will indicate the latest revision. Material changes will be communicated through an in-app notice or by requiring re-acceptance at next sign-in.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="p14">
+                <span class="lg-section-num">SECTION 14</span>
+                <h2 class="lg-h2">Contact &amp; Data Controller</h2>
+                <p>For privacy-related enquiries, requests to access or correct your data under the PDPA, or to report a data incident, please use one of the channels below.</p>
+
+                <table class="lg-data-table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Contact</th>
+                            <th>Use For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Data Protection Officer</strong></td>
+                            <td><a href="mailto:privacy@makautech.com">privacy@makautech.com</a></td>
+                            <td>PDPA requests, data deletion, access requests, security incidents</td>
+                        </tr>
+                        <tr>
+                            <td><strong>General Support</strong></td>
+                            <td><a href="mailto:support@makautech.com">support@makautech.com</a></td>
+                            <td>Account issues, technical problems, general questions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Legal &amp; Compliance</strong></td>
+                            <td><a href="mailto:legal@makautech.com">legal@makautech.com</a></td>
+                            <td>Legal notices, takedown requests, compliance enquiries</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Web</strong></td>
+                            <td><a href="https://makautech.com" target="_blank" rel="noopener">makautech.com</a></td>
+                            <td>Official platform &amp; status updates</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="lg-callout">
+                    <strong>Response Time</strong>
+                    We aim to acknowledge privacy enquiries within <strong>3 business days</strong> and provide a substantive response within <strong>21 calendar days</strong>, in line with PDPA practice notes.
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+
+</div>
+
+@section Scripts {
+    <script>
+    // Highlight current TOC section while scrolling
+    (function () {
+        var links = document.querySelectorAll('.lg-toc-link');
+        var sections = Array.prototype.map.call(links, function (a) {
+            var id = a.getAttribute('href').slice(1);
+            return document.getElementById(id);
+        });
+
+        function onScroll() {
+            var fromTop = window.scrollY + 80;
+            var activeIdx = 0;
+            for (var i = 0; i < sections.length; i++) {
+                if (sections[i] && sections[i].offsetTop <= fromTop) activeIdx = i;
+            }
+            links.forEach(function (a, i) {
+                a.classList.toggle('is-active', i === activeIdx);
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        // Smooth-scroll TOC anchors
+        links.forEach(function (a) {
+            a.addEventListener('click', function (ev) {
+                var id = a.getAttribute('href').slice(1);
+                var target = document.getElementById(id);
+                if (target) { ev.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            });
+        });
+    })();
+    </script>
+}
+

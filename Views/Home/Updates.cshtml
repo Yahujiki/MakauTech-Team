@@ -1,0 +1,227 @@
+﻿@model List<MakauTech.Models.Update>
+    @{
+    ViewData["Title"] = "Updates";
+    }
+
+    @section Styles {
+    <style>
+        .upd-wrap {
+            max-width: 880px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+
+        .upd-head {
+            margin-bottom: 32px;
+        }
+
+        .upd-eyebrow {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--mk-emerald-700);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .upd-title {
+            font-family: var(--mk-font-display);
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 700;
+            color: var(--mk-night-900);
+            margin: 0 0 8px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .upd-sub {
+            color: var(--mk-slate-600);
+            font-size: 16px;
+        }
+
+        .upd-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .upd-card {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 24px;
+            padding: 22px;
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: var(--mk-r-lg);
+            box-shadow: var(--mk-shadow-sm);
+            transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+        }
+
+            .upd-card:hover {
+                transform: translateY(-3px);
+                box-shadow: var(--mk-shadow-lg);
+                border-color: rgba(16, 185, 129, 0.24);
+            }
+
+        .upd-card-img {
+            aspect-ratio: 4 / 3;
+            border-radius: var(--mk-r);
+            overflow: hidden;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            position: relative;
+        }
+
+            .upd-card-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .upd-card-img .upd-placeholder {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                font-size: 56px;
+            }
+
+        .upd-card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12.5px;
+            color: var(--mk-slate-500, #64748b);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+        }
+
+            .upd-card-meta b {
+                color: var(--mk-emerald-700);
+            }
+
+        .upd-card-title {
+            font-family: var(--mk-font-display);
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--mk-night-900);
+            margin: 0 0 8px;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+        }
+
+        .upd-card-summary {
+            color: var(--mk-slate-700);
+            font-size: 15px;
+            line-height: 1.55;
+            margin: 0 0 12px;
+        }
+
+        .upd-card-link {
+            color: var(--mk-emerald-700);
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+            .upd-card-link:hover {
+                text-decoration: underline;
+            }
+
+        .upd-empty {
+            text-align: center;
+            padding: 64px 24px;
+            background: linear-gradient(135deg, #ecfdf5, #fefdf8);
+            border-radius: var(--mk-r-lg);
+            color: var(--mk-slate-600);
+        }
+
+        .upd-empty-emoji {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        [data-theme="dark"] .upd-card {
+            background: var(--mk-night-800);
+            border-color: rgba(255,255,255,0.06);
+        }
+
+        [data-theme="dark"] .upd-card-title {
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .upd-card-summary {
+            color: #cbd5e1;
+        }
+
+        [data-theme="dark"] .upd-title {
+            color: #f1f5f9;
+        }
+
+        @@media (max-width: 640px) {
+            .upd-card {
+                grid-template-columns: 1fr;
+                padding: 18px;
+            }
+
+            .upd-card-img {
+                aspect-ratio: 16 / 9;
+            }
+        }
+    </style>
+    }
+
+    <div class="upd-wrap">
+        <div class="upd-head mk-fade-in">
+            <span class="upd-eyebrow">📢 What's new</span>
+            <h1 class="upd-title">Daily updates</h1>
+            <p class="upd-sub">Latest news, events, new places &amp; features from the MakauTech team.</p>
+        </div>
+
+        @if (!Model.Any())
+        {
+        <div class="upd-empty">
+            <div class="upd-empty-emoji">📭</div>
+            <h2 style="font-family:var(--mk-font-display); margin:0 0 6px;">No updates yet</h2>
+            <p style="margin:0;">Check back soon — admin will post news here.</p>
+        </div>
+        }
+        else
+        {
+        <div class="upd-feed">
+            @foreach (var u in Model)
+            {
+            <article class="upd-card mk-fade-in">
+                <a href="@Url.Action(" UpdateDetail","Home",new{id=u.Id})" class="upd-card-img" aria-label="Read @u.Title">
+                    @if (!string.IsNullOrEmpty(u.ImageUrl))
+                    {
+                    <img src="@u.ImageUrl" alt="@u.Title" loading="lazy" />
+                    }
+                    else
+                    {
+                    <div class="upd-placeholder" aria-hidden="true">📰</div>
+                    }
+                </a>
+                <div>
+                    <div class="upd-card-meta">
+                        <span><b>@u.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</b></span>
+                        <span>By @u.AuthorName</span>
+                    </div>
+                    <h2 class="upd-card-title">
+                        <a href="@Url.Action(" UpdateDetail","Home",new{id=u.Id})" style="color:inherit; text-decoration:none;">@u.Title</a>
+                    </h2>
+                    @if (!string.IsNullOrEmpty(u.Summary))
+                    {
+                    <p class="upd-card-summary">@u.Summary</p>
+                    }
+                    <a class="upd-card-link" href="@Url.Action(" UpdateDetail","Home",new{id=u.Id})">Read more →</a>
+                </div>
+            </article>
+            }
+        </div>
+        }
+    </div>

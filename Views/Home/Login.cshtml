@@ -1,0 +1,1010 @@
+﻿@model MakauTech.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    int userCount  = ViewBag.UserCount  ?? 0;
+    int placeCount = ViewBag.PlaceCount ?? 0;
+}
+
+@section Styles {
+<style>
+    /* ── Full-screen photo background ── */
+    .city-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 8000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    /* ── Full-screen Sibu background — JS controls transform ── */
+    .cg-photo {
+        position: absolute;
+        inset: -4%; /* bleed absorbs scale + parallax travel */
+        background-image: url('/Images/rajang-river.jpg');
+        background-size: cover;
+        background-position: 50% 40%;
+        filter: brightness(0.52) saturate(0.88) contrast(1.12) sepia(0.06);
+        will-change: transform;
+        transform-origin: center center;
+    }
+
+    /* ── Cinematic overlay — bottom-weighted vignette ── */
+    .cg-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(2,8,4,0.52) 0%, rgba(2,8,4,0.18) 30%, rgba(2,8,4,0.12) 52%, rgba(2,8,4,0.42) 75%, rgba(2,8,4,0.82) 100%), radial-gradient(ellipse 90% 70% at 50% 42%, transparent 25%, rgba(0,0,0,0.28) 100%);
+    }
+
+    /* ── Brand + Card content stack (flex column, centred in the gate) ── */
+    .cg-content-stack {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 28px 16px;
+    }
+    /* SIBU AWAITS — 1.2× card width (1.2 × 420px = 504px) */
+    .cg-brand-header {
+        width: min(504px, 88vw);
+        text-align: center;
+        margin-bottom: 40px; /* spec: 32–48 px breathing gap to card */
+    }
+
+    .cg-bh-sibu {
+        display: block;
+        font-family: var(--mk-font-display, 'Fraunces', serif);
+        font-size: clamp(44px, 9vw, 80px);
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: -0.04em;
+        line-height: 0.88;
+    }
+
+    .cg-bh-awaits {
+        display: block;
+        font-family: var(--mk-font-display, 'Fraunces', serif);
+        font-size: clamp(44px, 9vw, 80px);
+        font-weight: 900;
+        color: transparent;
+        -webkit-text-stroke: 2px rgba(255,255,255,0.82);
+        letter-spacing: -0.04em;
+        line-height: 0.88;
+        margin-bottom: 16px;
+    }
+
+    .cg-bh-sub {
+        font-family: 'Inter', 'Montserrat', 'Segoe UI', sans-serif;
+        font-size: 10.5px;
+        letter-spacing: 0.10em;
+        color: rgba(255,255,255,0.70);
+        text-transform: uppercase;
+        margin: 0;
+    }
+
+    /* floating particles */
+    .cg-particles {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .cg-dot {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: rgba(52,211,153,0.5);
+        animation: cg-float linear infinite;
+    }
+
+        .cg-dot:nth-child(1) {
+            left: 12%;
+            bottom: -6px;
+            animation-duration: 18s;
+            animation-delay: 0s;
+            width: 2px;
+            height: 2px;
+        }
+
+        .cg-dot:nth-child(2) {
+            left: 30%;
+            bottom: -6px;
+            animation-duration: 22s;
+            animation-delay: 3s;
+        }
+
+        .cg-dot:nth-child(3) {
+            left: 50%;
+            bottom: -6px;
+            animation-duration: 16s;
+            animation-delay: 1s;
+            width: 4px;
+            height: 4px;
+            opacity: .3;
+        }
+
+        .cg-dot:nth-child(4) {
+            left: 70%;
+            bottom: -6px;
+            animation-duration: 20s;
+            animation-delay: 5s;
+            width: 2px;
+            height: 2px;
+        }
+
+        .cg-dot:nth-child(5) {
+            left: 88%;
+            bottom: -6px;
+            animation-duration: 14s;
+            animation-delay: 2s;
+        }
+
+    @@keyframes cg-float {
+        0% {
+            transform: translateY(0) scale(1);
+            opacity: 0;
+        }
+
+        5% {
+            opacity: 1;
+        }
+
+        95% {
+            opacity: .5;
+        }
+
+        100% {
+            transform: translateY(-100vh) scale(0.5);
+            opacity: 0;
+        }
+    }
+
+    /* ── Centre card — frosted glass ── */
+    .cg-card {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        background: rgba(10,20,14,0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(52,211,153,0.18);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(52,211,153,0.08);
+    }
+
+    /* shimmer top edge */
+    .cg-shimmer {
+        height: 2px;
+        background: linear-gradient(90deg,transparent,rgba(52,211,153,0.7) 40%,rgba(16,185,129,1) 50%,rgba(52,211,153,0.7) 60%,transparent);
+        background-size: 200% 100%;
+        animation: cg-shimmer-move 3s linear infinite;
+    }
+
+    @@keyframes cg-shimmer-move {
+        0% {
+            background-position: -100% 0;
+        }
+
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    .cg-card-inner {
+        padding: 28px 32px 32px;
+    }
+
+    /* card header — logo + back link */
+    .cg-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+    }
+
+    .cg-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+        .cg-brand img {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            opacity: 0.9;
+        }
+
+    .cg-brand-name {
+        font-family: var(--mk-font-display, 'Fraunces', serif);
+        font-size: 15px;
+        font-weight: 800;
+        color: rgba(255,255,255,0.6);
+        letter-spacing: -0.02em;
+    }
+
+    .cg-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: rgba(255,255,255,0.28);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        transition: color 0.18s;
+    }
+
+        .cg-back:hover {
+            color: #6ee7b7;
+        }
+
+    /* live stats row */
+    .cg-live-stats {
+        display: flex;
+        border: 1px solid rgba(52,211,153,0.15);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 22px;
+    }
+
+    .cg-live-stat {
+        flex: 1;
+        text-align: center;
+        padding: 10px 12px;
+        border-right: 1px solid rgba(52,211,153,0.1);
+    }
+
+        .cg-live-stat:last-child {
+            border-right: none;
+        }
+
+    .cg-live-stat-n {
+        display: block;
+        font-family: var(--mk-font-display, 'Fraunces', serif);
+        font-size: 20px;
+        font-weight: 900;
+        color: #34d399;
+        line-height: 1;
+    }
+
+    .cg-live-stat-l {
+        display: block;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.28);
+        margin-top: 3px;
+    }
+
+    /* form heading */
+    .cg-form-label {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #34d399;
+        margin-bottom: 6px;
+    }
+
+    .cg-form-title {
+        font-family: var(--mk-font-display, 'Fraunces', serif);
+        font-size: clamp(22px, 4vw, 28px);
+        font-weight: 800;
+        color: #f0fdf4;
+        margin: 0 0 4px;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+    }
+
+    .cg-form-sub {
+        font-size: 12.5px;
+        color: rgba(255,255,255,0.3);
+        margin: 0 0 22px;
+    }
+
+    /* alert */
+    .cg-alert {
+        background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 12.5px;
+        color: #fca5a5;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+    }
+
+    /* underline inputs */
+    .cg-field {
+        margin-bottom: 22px;
+    }
+
+    .cg-field-label {
+        display: block;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.28);
+        margin-bottom: 8px;
+    }
+
+    .cg-field-wrap {
+        position: relative;
+    }
+
+    .cg-field-icon {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: rgba(255,255,255,0.22);
+        pointer-events: none;
+        transition: color 0.2s;
+    }
+
+    .cg-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 9px 0 9px 24px;
+        font-size: 14px;
+        color: #f0fdf4;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .cg-input::placeholder {
+            color: rgba(255,255,255,0.18);
+        }
+
+        .cg-input:focus {
+            border-bottom-color: #34d399;
+        }
+
+            .cg-input:focus ~ .cg-field-icon {
+                color: #34d399;
+            }
+
+    .cg-field-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 1px;
+        width: 0;
+        background: #34d399;
+        transition: width 0.28s ease;
+    }
+
+    .cg-input:focus ~ .cg-field-line {
+        width: 100%;
+    }
+
+    /* submit */
+    .cg-submit {
+        width: 100%;
+        margin-top: 6px;
+        background: linear-gradient(135deg,#10b981,#059669);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 14px 20px;
+        font-size: 14.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
+        box-shadow: 0 4px 18px rgba(16,185,129,0.35);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .cg-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .cg-submit:hover::after {
+            transform: translateX(100%);
+        }
+
+        .cg-submit:hover {
+            opacity: .9;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(16,185,129,0.45);
+        }
+
+        .cg-submit:active {
+            transform: translateY(0);
+        }
+
+        .cg-submit svg {
+            width: 15px;
+            height: 15px;
+            transition: transform 0.2s;
+        }
+
+        .cg-submit:hover svg {
+            transform: translateX(4px);
+        }
+
+    /* ── Forgot password link ── */
+    .cg-forgot-row {
+        display: flex;
+        justify-content: flex-end;
+        margin: -10px 0 18px;
+    }
+
+    .cg-forgot-link {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: rgba(52,211,153,0.85);
+        text-decoration: none;
+        transition: color 0.18s;
+    }
+
+        .cg-forgot-link:hover {
+            color: #6ee7b7;
+            text-decoration: underline;
+        }
+
+    /* ── Agreement checkbox ── */
+    .cg-agree-row {
+        margin-bottom: 20px;
+        background: rgba(52,211,153,0.05);
+        border: 1px solid rgba(52,211,153,0.18);
+        border-radius: 10px;
+        padding: 13px 14px;
+    }
+
+    .cg-agree-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .cg-agree-check {
+        width: 15px;
+        height: 15px;
+        accent-color: #34d399;
+        flex-shrink: 0;
+        margin-top: 2px;
+        cursor: pointer;
+    }
+
+    .cg-agree-label span {
+        font-size: 12px;
+        color: rgba(255,255,255,0.52);
+        line-height: 1.55;
+    }
+
+    .cg-agree-link {
+        color: #34d399;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .cg-agree-link:hover {
+            text-decoration: underline;
+        }
+
+    .cg-submit:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    /* register link */
+    .cg-register {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 12.5px;
+        color: rgba(255,255,255,0.28);
+    }
+
+        .cg-register a {
+            color: #34d399;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+            .cg-register a:hover {
+                text-decoration: underline;
+            }
+
+    /* ── Location header — now in document flow above brand text ── */
+    .cg-location-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+        margin-bottom: 20px;
+    }
+
+    .cg-coords {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.22);
+        white-space: nowrap;
+    }
+
+    /* live badge (inside .cg-location-header) */
+    .cg-live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(52,211,153,0.14);
+        border: 1px solid rgba(52,211,153,0.3);
+        color: #6ee7b7;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 999px;
+        backdrop-filter: blur(6px);
+        white-space: nowrap;
+    }
+
+        .cg-live-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #34d399;
+            animation: cg-pulse 2s ease infinite;
+        }
+
+    @@keyframes cg-pulse {
+        0%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 0 0 rgba(52,211,153,0.5);
+        }
+
+        50% {
+            opacity: .5;
+            box-shadow: 0 0 0 4px rgba(52,211,153,0);
+        }
+    }
+
+    /* ── Lateral depth columns ── */
+    .cg-lateral-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        align-items: stretch;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .cg-left-visual,
+    .cg-right-visual {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+    }
+    /* Spacer reserves the card's footprint in the centre */
+    .cg-lateral-spacer {
+        width: 470px;
+        flex-shrink: 0;
+    }
+    /* Blurred image planes — oversized so parallax shift never shows an edge */
+    .cg-left-inner,
+    .cg-right-inner {
+        position: absolute;
+        inset: -44px;
+        background-size: cover;
+        filter: blur(10px) saturate(0.7);
+        will-change: transform;
+        transition: transform 1.2s ease-out;
+    }
+
+    .cg-left-inner {
+        background-image: url('/Images/sibu-lake-garden.jpg');
+        background-position: center 40%;
+    }
+
+    .cg-right-inner {
+        background-image: url('/Images/heritage-centre.jpg');
+        background-position: center 40%;
+    }
+    /* Inner-edge gradients fade each column toward the card */
+    .cg-left-visual::after,
+    .cg-right-visual::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .cg-left-visual::after {
+        background: linear-gradient(to right, rgba(4,12,8,0.25) 0%, rgba(4,12,8,0.97) 100%);
+    }
+
+    .cg-right-visual::after {
+        background: linear-gradient(to left, rgba(4,12,8,0.25) 0%, rgba(4,12,8,0.97) 100%);
+    }
+
+    @@media (max-width: 900px) {
+        .cg-lateral-layer {
+            display: none;
+        }
+    }
+
+    /* mobile */
+    @@media (max-width: 500px) {
+        .cg-card-inner {
+            padding: 22px 22px 26px;
+        }
+
+        .cg-form-title {
+            font-size: 22px;
+        }
+
+        .cg-content-stack {
+            padding: 16px 12px;
+        }
+
+        .cg-brand-header {
+            margin-bottom: 24px;
+        }
+
+        .cg-bh-sub {
+            display: none;
+        }
+
+        .cg-coords {
+            display: none;
+        }
+    }
+
+    @@supports (-webkit-touch-callout: none) {
+        .city-gate {
+            height: -webkit-fill-available;
+        }
+    }
+</style>
+}
+
+<div class="city-gate">
+    <!-- background photo -->
+    <div class="cg-photo"></div>
+    <div class="cg-overlay"></div>
+
+    <!-- floating particles -->
+    <div class="cg-particles">
+        <div class="cg-dot"></div>
+        <div class="cg-dot"></div>
+        <div class="cg-dot"></div>
+        <div class="cg-dot"></div>
+        <div class="cg-dot"></div>
+    </div>
+
+    <!-- ═══ BRAND + CARD STACK ═══ -->
+    <div class="cg-content-stack">
+
+        <!-- SIBU AWAITS: filled + outlined typographic brand identity -->
+        <div class="cg-brand-header" aria-hidden="true">
+            <span class="cg-bh-sibu">SIBU</span>
+            <span class="cg-bh-awaits">AWAITS</span>
+            <p class="cg-bh-sub">Swan City &nbsp;•&nbsp; Foochow Heritage &nbsp;•&nbsp; Borneo</p>
+        </div>
+
+        <div class="cg-card">
+            <div class="cg-shimmer"></div>
+            <div class="cg-card-inner">
+
+                <!-- header row -->
+                <div class="cg-card-header">
+                    <a href="/" class="cg-brand">
+                        <img src="/Images/icon.png" alt="MakauTech" />
+                        <span class="cg-brand-name">MakauTech</span>
+                    </a>
+                    <a href="/" class="cg-back">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        Home
+                    </a>
+                </div>
+
+                <!-- live stats -->
+                <div class="cg-live-stats">
+                    <div class="cg-live-stat">
+                        <span class="cg-live-stat-n">@userCount</span>
+                        <span class="cg-live-stat-l">Explorers</span>
+                    </div>
+                    <div class="cg-live-stat">
+                        <span class="cg-live-stat-n">@placeCount</span>
+                        <span class="cg-live-stat-l">Places</span>
+                    </div>
+                    <div class="cg-live-stat">
+                        <span class="cg-live-stat-n">Free</span>
+                        <span class="cg-live-stat-l">Always</span>
+                    </div>
+                </div>
+
+                <p class="cg-form-label">Sign in</p>
+                <h1 class="cg-form-title">Good to see you again.</h1>
+                <p class="cg-form-sub">Enter your details to continue exploring.</p>
+
+                @if (TempData["LoginError"] != null)
+                {
+                <div class="cg-alert" role="alert">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <span>@TempData["LoginError"]</span>
+                </div>
+                }
+                @if (TempData["LoginNotice"] != null)
+                {
+                <div class="cg-alert" role="status" style="background:rgba(16,185,129,0.10);border-color:rgba(16,185,129,0.32);color:#6ee7b7;">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>@TempData["LoginNotice"]</span>
+                </div>
+                }
+                @if (ViewBag.Error != null)
+                {
+                <div class="cg-alert" role="alert">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <span>@ViewBag.Error</span>
+                </div>
+                }
+
+                @* Login form — server-rendered, progressively enhanced.
+                Works without JS (server still validates LoginViewModel + checks BCrypt
+                + enforces antiforgery via AutoValidateAntiforgeryTokenAttribute).
+                JS layers on:
+                (a) MkSchema validation BEFORE network hit
+                (b) Button lock against double-submission
+                (c) Slim top progress bar during the auth handoff
+                Antiforgery token is emitted by the asp-action tag helper as a
+                hidden __RequestVerificationToken — no manual @Html.AntiForgeryToken() needed. *@
+                <form id="loginForm" method="post" asp-action="Login" novalidate>
+                    @* Explicit antiforgery token. The <form asp-action>
+                        tag helper emits one automatically
+                        too, but stating it inline makes the security contract obvious to reviewers. *@
+                        @Html.AntiForgeryToken()
+
+                        <div class="cg-field">
+                            <label class="cg-field-label" for="loginEmail">Email address</label>
+                            <div class="cg-field-wrap">
+                                <input id="loginEmail" class="cg-input" type="email" name="Email"
+                                       placeholder="you@example.com" autocomplete="email"
+                                       maxlength="256" required
+                                       aria-describedby="loginEmailErr" />
+                                <svg class="cg-field-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                                </svg>
+                                <div class="cg-field-line"></div>
+                            </div>
+                            <div id="loginEmailErr" class="mk-fielderror" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="cg-field">
+                            <label class="cg-field-label" for="loginPassword">Password</label>
+                            <div class="cg-field-wrap">
+                                <input id="loginPassword" class="cg-input" type="password" name="Password"
+                                       placeholder="••••••••" autocomplete="current-password"
+                                       minlength="6" maxlength="128" required
+                                       aria-describedby="loginPasswordErr" />
+                                <svg class="cg-field-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                <div class="cg-field-line"></div>
+                            </div>
+                            <div id="loginPasswordErr" class="mk-fielderror" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <!-- Forgot password link — small, right-aligned above agreement -->
+                        <div class="cg-forgot-row">
+                            <a asp-action="ForgotPassword" class="cg-forgot-link">Forgot password?</a>
+                        </div>
+
+                        <!-- Agreement — must tick before entering -->
+                        <div class="cg-agree-row">
+                            <label class="cg-agree-label" for="loginAgree">
+                                <input type="checkbox" id="loginAgree" class="cg-agree-check" />
+                                <span>
+                                    I have read and agree to the
+                                    <a href="@Url.Action(" Terms","Home")" target="_blank" rel="noopener" class="cg-agree-link">Terms of Service</a>
+                                    &amp;
+                                    <a href="@Url.Action(" Privacy","Home")" target="_blank" rel="noopener" class="cg-agree-link">Privacy Policy</a>
+                                </span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="loginSubmit" class="cg-submit" disabled>
+                            <span>Enter Sibu</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <div class="cg-register">
+                        New to Sibu? <a asp-action="Register">Create your account →</a>
+                    </div>
+
+                    <div class="cg-register" style="margin-top:10px;">
+                        <a href="javascript:void(0)" onclick="window.MakauLegalPreviewOpen && MakauLegalPreviewOpen()" style="color:rgba(255,255,255,0.55);font-weight:700;text-decoration:none;">
+                            Read Terms & Privacy before signing in
+                        </a>
+                    </div>
+
+            </div>
+        </div>
+
+    </div><!-- /.cg-content-stack -->
+</div>
+
+@section Scripts {
+@await Html.PartialAsync("_AgreementPreview")
+<script>
+/* ── Agreement gate — unlock submit when checkbox ticked ── */
+(function () {
+    var chk = document.getElementById('loginAgree');
+    var btn = document.getElementById('loginSubmit');
+    if (!chk || !btn) return;
+    function sync() {
+        btn.disabled = !chk.checked;
+    }
+    chk.addEventListener('change', sync);
+    sync();
+}());
+
+/* ══════════════════════════════════════════════════════════════════
+   MakauTech Login — Professional parallax engine
+   One rAF loop drives BOTH the slow breathing scale AND the
+   high-inertia mouse parallax on the background photo.
+   GPU-only path: transform only, no layout triggers.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+    'use strict';
+
+    var photo = document.querySelector('.cg-photo');
+    if (!photo) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var mx = 0.5, my = 0.5;   /* normalised mouse position 0–1          */
+    var cx = 0,   cy = 0;     /* current smoothed translate (px)         */
+    var t  = 0;               /* time accumulator for breathe cycle      */
+
+    /* ── Unified animation loop ── */
+    (function loop() {
+        /* Slow breathe: scale oscillates 1.00 ↔ 1.04 over ~21 s */
+        t += 0.005;
+        var scale = (1.02 + Math.sin(t) * 0.02).toFixed(4);
+
+        /* High-inertia lerp toward mouse target (3% per frame ≈ 2 s to settle) */
+        var tx = (mx - 0.5) * -28;   /* ±14 px horizontal */
+        var ty = (my - 0.5) * -18;   /* ±9 px vertical    */
+        cx += (tx - cx) * 0.03;
+        cy += (ty - cy) * 0.03;
+
+        photo.style.transform =
+            'scale(' + scale + ') translate(' + cx.toFixed(2) + 'px,' + cy.toFixed(2) + 'px)';
+
+        requestAnimationFrame(loop);
+    }());
+
+    /* Mouse tracker — passive for scroll performance */
+    window.addEventListener('mousemove', function (e) {
+        mx = e.clientX / window.innerWidth;
+        my = e.clientY / window.innerHeight;
+    }, { passive: true });
+}());
+
+/* ══════════════════════════════════════════════════════════════════
+   MakauTech Login — secure submit pipeline
+   1. MkSchema validation (Zod-style) BEFORE network — defence in depth.
+   2. Button lock prevents double-submit (no duplicate POST, no extra
+      lockout counter increments on the server).
+   3. Slim top progress bar fires during the auth handoff for instant
+      perceived feedback. The page then completes a normal POST so the
+      antiforgery cookie/header pair is validated server-side.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+    'use strict';
+    if (!window.MakauSecurity) return; // graceful degrade — server still validates
+
+    var MK = window.MakauSecurity;
+    var form  = document.getElementById('loginForm');
+    var btn   = document.getElementById('loginSubmit');
+    var email = document.getElementById('loginEmail');
+    var pwd   = document.getElementById('loginPassword');
+    var emailErr = document.getElementById('loginEmailErr');
+    var pwdErr   = document.getElementById('loginPasswordErr');
+    if (!form || !btn) return;
+
+    // Schema mirrors the server-side LoginViewModel data annotations exactly.
+    var loginSchema = MK.MkSchema.object({
+        Email: MK.MkSchema.string()
+            .required('Email is required.')
+            .email('Enter a valid email address.')
+            .max(256, 'Email is too long.'),
+        Password: MK.MkSchema.string()
+            .required('Password is required.')
+            .min(6, 'Password must be at least 6 characters.')
+            .max(128, 'Password is too long.')
+    });
+
+    function showError(input, errEl, msg) {
+        if (msg) {
+            errEl.textContent = msg;            // textContent => no HTML injection
+            errEl.setAttribute('data-visible', 'true');
+            input.setAttribute('data-mk-invalid', 'true');
+            input.setAttribute('aria-invalid', 'true');
+        } else {
+            errEl.textContent = '';
+            errEl.removeAttribute('data-visible');
+            input.removeAttribute('data-mk-invalid');
+            input.removeAttribute('aria-invalid');
+        }
+    }
+
+    // Live clear on input — feedback without nagging.
+    email.addEventListener('input', function () { showError(email, emailErr, ''); });
+    pwd  .addEventListener('input', function () { showError(pwd,   pwdErr,   ''); });
+
+    form.addEventListener('submit', function (e) {
+        // Already submitting? Hard-block the second click.
+        if (btn.getAttribute('data-loading') === 'true') {
+            e.preventDefault();
+            return;
+        }
+
+        var result = loginSchema.safeParse({
+            Email:    email.value,
+            Password: pwd.value
+        });
+
+        if (!result.ok) {
+            e.preventDefault();
+            showError(email, emailErr, result.errors.Email || '');
+            showError(pwd,   pwdErr,   result.errors.Password || '');
+            // Focus the first invalid field for keyboard users.
+            (result.errors.Email ? email : pwd).focus();
+            return;
+        }
+
+        // Passed client-side schema → lock UI + show slim top bar.
+        btn.setAttribute('data-loading', 'true');
+        btn.setAttribute('aria-busy', 'true');
+        // Server takes over from here. On error, the page reloads and
+        // UI unlocks on next render.
+    });
+}());
+</script>
+}

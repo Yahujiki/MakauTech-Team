@@ -1,0 +1,53 @@
+﻿@* Pre-login agreement preview (read-only). Uses links (no iframe) because X-Frame-Options = DENY. *@
+<div id="mk-legal-preview" style="display:none;position:fixed;inset:0;z-index:99993;background:rgba(2,6,23,0.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:22px;">
+    <div style="max-width:560px;width:100%;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,0.35);border:1px solid rgba(16,185,129,0.15);overflow:hidden;">
+        <div style="padding:18px 20px;background:linear-gradient(135deg,#071d0f,#0d3320);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+                <div style="font-weight:900;font-size:1.05rem;letter-spacing:-0.01em;">Terms & Privacy</div>
+                <div style="opacity:0.75;font-size:0.9rem;margin-top:2px;">Read before you login / register</div>
+            </div>
+            <button type="button" id="mkLegalClose" style="width:40px;height:40px;border:none;border-radius:12px;background:rgba(255,255,255,0.16);color:#fff;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:18px 20px;color:#111827;max-height:min(70vh,520px);overflow:auto;">
+            <p style="margin:0 0 12px;line-height:1.6;color:#374151;">
+                MakauTech is a tourism platform. Before continuing, please read our legal pages:
+            </p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                <a href="@Url.Action(" Terms","Home")" target="_blank" rel="noopener" style="font-weight:900;color:#059669;text-decoration:none;">Open Terms of Service</a>
+                <span style="color:#9ca3af;">•</span>
+                <a href="@Url.Action(" Privacy","Home")" target="_blank" rel="noopener" style="font-weight:900;color:#059669;text-decoration:none;">Open Privacy Policy</a>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:14px;">
+                <div style="font-weight:900;margin-bottom:8px;">Summary</div>
+                <ul style="margin:0;padding-left:18px;color:#374151;line-height:1.6;">
+                    <li>We store account and gameplay data to run the platform.</li>
+                    <li>Be respectful: no abuse, spam, or harmful content.</li>
+                    <li>Your session is protected with secure HttpOnly cookies.</li>
+                    <li>You can request removal of your data via Feedback.</li>
+                </ul>
+            </div>
+            <p style="margin:12px 0 0;color:#6b7280;font-size:0.9rem;">
+                Note: after login, you’ll be asked to tick acceptance before using the dashboard.
+            </p>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;">
+            <button type="button" id="mkLegalOk" style="border:none;border-radius:14px;padding:10px 14px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 8px 24px rgba(16,185,129,0.25);">Got it</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('mk-legal-preview');
+    if (!modal) return;
+    var closeBtn = document.getElementById('mkLegalClose');
+    var okBtn = document.getElementById('mkLegalOk');
+    function close() { modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }
+    function open()  { modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false'); }
+    closeBtn && closeBtn.addEventListener('click', close);
+    okBtn && okBtn.addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    window.MakauLegalPreviewOpen = open;
+})();
+</script>

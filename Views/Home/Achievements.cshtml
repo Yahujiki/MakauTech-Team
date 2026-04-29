@@ -1,0 +1,444 @@
+﻿@model List<MakauTech.Models.Achievement>
+    @{
+    ViewData["Title"] = "Achievements";
+    var userBadges   = (ViewBag.UserBadges  as List<string>
+        ) ?? new List<string>
+            ();
+            var userPoints   = (int)(ViewBag.UserPoints ?? 0);
+            var userPlaces   = (int)(ViewBag.UserPlaces ?? 0);
+            bool loggedIn    = ViewBag.IsLoggedIn == true;
+            int unlockedCount = loggedIn ? Model.Count(a => userBadges.Contains(a.Name)) : 0;
+
+            int ProgressPct(MakauTech.Models.Achievement a)
+            {
+            if (!loggedIn) return 0;
+            if (userBadges.Contains(a.Name)) return 100;
+            if (a.PlacesRequired > 0 && a.PointsRequired == 0)
+            return Math.Min(100, (int)((double)userPlaces / a.PlacesRequired * 100));
+            if (a.PointsRequired > 0)
+            return Math.Min(100, (int)((double)userPoints / a.PointsRequired * 100));
+            return 0;
+            }
+            }
+
+            @section Styles {
+            <style>
+                body {
+                    background: #030d06 !important;
+                }
+
+                .main-content {
+                    background: #030d06;
+                }
+
+                .ach-hero {
+                    background: linear-gradient(135deg,#030d06 0%,#071d0f 50%,#0a2915 100%);
+                    padding: 3.5rem 2rem 2.5rem;
+                    position: relative;
+                    overflow: hidden;
+                    color: #fff;
+                    text-align: center;
+                }
+
+                    .ach-hero::before {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: radial-gradient(ellipse 65% 80% at 50% 0%, rgba(34,197,94,0.2) 0%, transparent 65%);
+                        pointer-events: none;
+                    }
+
+                    .ach-hero::after {
+                        content: '';
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        height: 1px;
+                        background: linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent);
+                    }
+
+                .ach-hero-kicker {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    background: rgba(245,158,11,0.12);
+                    border: 1px solid rgba(245,158,11,0.4);
+                    color: #fde68a;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    padding: 0.3rem 0.9rem;
+                    border-radius: 999px;
+                    margin-bottom: 0.85rem;
+                }
+
+                .ach-hero h1 {
+                    font-size: clamp(2rem,5vw,2.8rem);
+                    font-weight: 800;
+                    letter-spacing: -0.03em;
+                    margin-bottom: 0.5rem;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                    .ach-hero h1 span {
+                        background: linear-gradient(90deg,#fde68a,#f59e0b,#fbbf24);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                    }
+
+                .ach-hero p {
+                    opacity: 0.75;
+                    font-size: 1rem;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .ach-hero-orb {
+                    position: absolute;
+                    border-radius: 50%;
+                    filter: blur(70px);
+                    pointer-events: none;
+                }
+
+                .ach-hero-orb-1 {
+                    width: 300px;
+                    height: 300px;
+                    background: rgba(245,158,11,0.1);
+                    top: -100px;
+                    right: -60px;
+                }
+
+                .ach-hero-orb-2 {
+                    width: 200px;
+                    height: 200px;
+                    background: rgba(34,197,94,0.1);
+                    bottom: -80px;
+                    left: -50px;
+                }
+
+                .ach-progress-bar-wrap {
+                    max-width: 340px;
+                    margin: 1.25rem auto 0;
+                }
+
+                .ach-prog-label {
+                    font-size: 0.85rem;
+                    color: rgba(255,255,255,0.75);
+                    margin-bottom: 0.4rem;
+                }
+
+                .ach-prog-track {
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 999px;
+                    height: 10px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.06);
+                }
+
+                .ach-prog-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg,#22c55e,#4ade80);
+                    border-radius: 999px;
+                    transition: width 1s ease;
+                    box-shadow: 0 0 10px rgba(34,197,94,0.4);
+                }
+
+                .ach-body {
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    padding: 2rem 1.5rem 3rem;
+                }
+
+                .ach-section-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: rgba(74,222,128,0.6);
+                    margin-bottom: 1rem;
+                    padding-left: 0.25rem;
+                }
+
+                    .ach-section-label::after {
+                        content: '';
+                        flex: 1;
+                        height: 1px;
+                        background: linear-gradient(90deg, rgba(34,197,94,0.25), transparent);
+                    }
+
+                .ach-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                    gap: 1.25rem;
+                    margin-bottom: 2.5rem;
+                }
+
+                .ach-card {
+                    background: linear-gradient(135deg, rgba(7,29,15,0.85) 0%, rgba(3,13,6,0.92) 100%);
+                    border-radius: 20px;
+                    padding: 1.6rem 1.4rem 1.4rem;
+                    border: 1.5px solid rgba(34,197,94,0.12);
+                    box-shadow: 0 4px 18px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    position: relative;
+                    overflow: hidden;
+                    color: #e6edf3;
+                    transition: transform 0.28s cubic-bezier(.34,1.36,.64,1), box-shadow 0.25s, border-color 0.25s;
+                }
+
+                    .ach-card:hover {
+                        transform: translateY(-6px);
+                        box-shadow: 0 16px 44px rgba(0,0,0,0.4), 0 0 0 1.5px rgba(34,197,94,0.25), 0 0 20px rgba(34,197,94,0.05);
+                        border-color: rgba(34,197,94,0.3);
+                    }
+
+                .ach-card--unlocked {
+                    background: linear-gradient(135deg, rgba(7,50,25,0.9) 0%, rgba(5,20,10,0.95) 100%);
+                    border-color: rgba(34,197,94,0.35);
+                    box-shadow: 0 4px 18px rgba(34,197,94,0.15), 0 0 0 1px rgba(34,197,94,0.2), 0 0 30px rgba(34,197,94,0.05);
+                }
+
+                .ach-card--locked {
+                    opacity: 0.55;
+                }
+
+                    .ach-card--locked .ach-icon {
+                        filter: grayscale(0.6) brightness(0.7);
+                    }
+
+                .ach-unlocked-ribbon {
+                    position: absolute;
+                    top: 0.7rem;
+                    right: 0.7rem;
+                    background: linear-gradient(135deg,#22c55e,#16a34a);
+                    color: #fff;
+                    font-size: 0.68rem;
+                    font-weight: 800;
+                    letter-spacing: 0.06em;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 999px;
+                    box-shadow: 0 3px 10px rgba(34,197,94,0.4);
+                }
+
+                .ach-icon {
+                    font-size: 2.8rem;
+                    line-height: 1;
+                    margin-bottom: 0.25rem;
+                }
+
+                .ach-name {
+                    font-size: 1rem;
+                    font-weight: 800;
+                    color: #e6edf3;
+                }
+
+                .ach-desc {
+                    font-size: 0.83rem;
+                    color: rgba(255,255,255,0.5);
+                    line-height: 1.5;
+                    flex: 1;
+                }
+
+                .ach-req {
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    color: #4ade80;
+                }
+
+                .ach-req--locked {
+                    color: rgba(255,255,255,0.3);
+                }
+
+                .ach-mini-prog {
+                    margin-top: 0.5rem;
+                }
+
+                .ach-mini-track {
+                    background: rgba(255,255,255,0.08);
+                    border-radius: 999px;
+                    height: 6px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.06);
+                }
+
+                .ach-mini-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg,#22c55e,#4ade80);
+                    border-radius: 999px;
+                    box-shadow: 0 0 6px rgba(34,197,94,0.3);
+                }
+
+                .ach-mini-label {
+                    font-size: 0.72rem;
+                    color: rgba(255,255,255,0.4);
+                    margin-top: 0.25rem;
+                    font-weight: 600;
+                }
+
+                @@keyframes ach-in {
+                    from {
+                        opacity: 0;
+                        transform: translateY(24px) scale(0.94);
+                    }
+
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                .ach-card {
+                    animation: ach-in 0.45s ease both;
+                }
+
+                    .ach-card:nth-child(1) {
+                        animation-delay: 0.03s;
+                    }
+
+                    .ach-card:nth-child(2) {
+                        animation-delay: 0.07s;
+                    }
+
+                    .ach-card:nth-child(3) {
+                        animation-delay: 0.11s;
+                    }
+
+                    .ach-card:nth-child(4) {
+                        animation-delay: 0.15s;
+                    }
+
+                    .ach-card:nth-child(5) {
+                        animation-delay: 0.19s;
+                    }
+
+                    .ach-card:nth-child(6) {
+                        animation-delay: 0.23s;
+                    }
+
+                    .ach-card:nth-child(7) {
+                        animation-delay: 0.27s;
+                    }
+
+                    .ach-card:nth-child(8) {
+                        animation-delay: 0.31s;
+                    }
+
+                    .ach-card:nth-child(9) {
+                        animation-delay: 0.35s;
+                    }
+
+                    .ach-card:nth-child(10) {
+                        animation-delay: 0.39s;
+                    }
+            </style>
+            }
+
+            <!-- Hero -->
+            <div class="ach-hero">
+                <div class="ach-hero-orb ach-hero-orb-1"></div>
+                <div class="ach-hero-orb ach-hero-orb-2"></div>
+                <span class="ach-hero-kicker">🏅 Badge Collection</span>
+                <h1>Earn <span>Achievements</span></h1>
+                <p>Explore Sibu, play mini games, and write reviews to unlock every badge.</p>
+
+                @if (loggedIn)
+                {
+                int pct = Model.Count > 0 ? (int)((double)unlockedCount / Model.Count * 100) : 0;
+                <div class="ach-progress-bar-wrap">
+                    <div class="ach-prog-label">@unlockedCount / @Model.Count badges unlocked</div>
+                    <div class="ach-prog-track">
+                        <div class="ach-prog-fill" style="width:@pct%"></div>
+                    </div>
+                </div>
+                }
+                else
+                {
+                <p style="margin-top:0.75rem;font-size:0.88rem;opacity:0.65;">
+                    <a asp-action="Login" asp-controller="Home" style="color:#4ade80;font-weight:700;text-decoration:underline">Log in</a> to track your progress.
+                </p>
+                }
+            </div>
+
+            <!-- Grid -->
+            <div class="ach-body">
+                @{
+                var unlocked = loggedIn ? Model.Where(a => userBadges.Contains(a.Name)).ToList() : new List<MakauTech.Models.Achievement>
+                    ();
+                    var inProg   = loggedIn ? Model.Where(a => !userBadges.Contains(a.Name) && ProgressPct(a) > 0).ToList() : new List<MakauTech.Models.Achievement>
+                        ();
+                        var locked   = loggedIn ? Model.Where(a => !userBadges.Contains(a.Name) && ProgressPct(a) == 0).ToList() : Model;
+                        }
+
+                        @if (unlocked.Count > 0)
+                        {
+                        <div class="ach-section-label">✅ Unlocked — @unlocked.Count</div>
+                        <div class="ach-grid">
+                            @foreach (var a in unlocked)
+                            {
+                            <div class="ach-card ach-card--unlocked">
+                                <span class="ach-unlocked-ribbon">UNLOCKED</span>
+                                <div class="ach-icon">@a.Icon</div>
+                                <div class="ach-name">@a.Name</div>
+                                <div class="ach-desc">@a.Description</div>
+                                <div class="ach-req">
+                                    @if (a.PlacesRequired > 0) { <span>🗺️ @a.PlacesRequired places visited</span> }
+                                    else { <span>🪙 @a.PointsRequired pts earned</span> }
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        }
+
+                        @if (inProg.Count > 0)
+                        {
+                        <div class="ach-section-label">🔄 In progress — @inProg.Count</div>
+                        <div class="ach-grid">
+                            @foreach (var a in inProg)
+                            {
+                            int pct = ProgressPct(a);
+                            string current = a.PlacesRequired > 0 ? $"{userPlaces}/{a.PlacesRequired}" : $"{userPoints}/{a.PointsRequired}";
+                            <div class="ach-card">
+                                <div class="ach-icon">@a.Icon</div>
+                                <div class="ach-name">@a.Name</div>
+                                <div class="ach-desc">@a.Description</div>
+                                <div class="ach-req">
+                                    @if (a.PlacesRequired > 0) { <span>🗺️ @a.PlacesRequired places</span> }
+                                    else { <span>🪙 @a.PointsRequired pts</span> }
+                                </div>
+                                <div class="ach-mini-prog">
+                                    <div class="ach-mini-track">
+                                        <div class="ach-mini-fill" style="width:@pct%"></div>
+                                    </div>
+                                    <div class="ach-mini-label">@current (@pct%)</div>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        }
+
+                        <div class="ach-section-label">🔒 Locked — @locked.Count</div>
+                        <div class="ach-grid">
+                            @foreach (var a in locked)
+                            {
+                            <div class="ach-card ach-card--locked">
+                                <div class="ach-icon">@a.Icon</div>
+                                <div class="ach-name">@a.Name</div>
+                                <div class="ach-desc">@a.Description</div>
+                                <div class="ach-req ach-req--locked">
+                                    @if (a.PlacesRequired > 0) { <span>Visit @a.PlacesRequired places</span> }
+                                    else { <span>Earn @a.PointsRequired pts</span> }
+                                </div>
+                            </div>
+                            }
+                        </div>
+            </div>
+
