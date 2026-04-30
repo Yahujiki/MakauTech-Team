@@ -2,7 +2,7 @@
 
 A Sibu tourism platform built with **ASP.NET Core 8 MVC**. Players discover Foochow food, climb leaderboards via mini-games, and review places — all gamified.
 
-🌐 **Live:** [makautech.com](https://makautech.com)
+> 🛠️ **Status:** Local build · server deployment planned after class demo.
 
 ---
 
@@ -21,7 +21,7 @@ A Sibu tourism platform built with **ASP.NET Core 8 MVC**. Players discover Fooc
 
 ## 🛠️ Tech stack
 
-ASP.NET Core 8 MVC · MySQL 8 · Entity Framework Core · BCrypt · SignalR · Brevo · Cloudflare · Oracle Cloud
+ASP.NET Core 8 MVC · MySQL 8 · Entity Framework Core · BCrypt · SignalR · Brevo
 
 ---
 
