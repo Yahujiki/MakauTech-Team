@@ -1,0 +1,10 @@
+# Treat Razor views as C#, not HTML
+*.cshtml linguist-language=C#
+*.cshtml.css linguist-language=C#
+
+# Mark third-party libraries as vendored so they don't pollute stats
+wwwroot/lib/** linguist-vendored=true
+
+# Generated files
+**/bin/** linguist-generated=true
+**/obj/** linguist-generated=true
