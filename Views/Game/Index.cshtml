@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Quiz Game";
+}
+@Html.AntiForgeryToken()
+
+<div class="game-container">
+    <div id="game-start" class="game-screen">
+        <h1>🎮 MakauTech Quiz</h1>
+        <p>Test your knowledge of Sibu's famous places!</p>
+        <div class="game-rules">
+            <div class="rule-card">❓ 10 Questions</div>
+            <div class="rule-card">❤️ 3 Lives</div>
+            <div class="rule-card">⭐ +3 pts each</div>
+        </div>
+        <button onclick="startGame()" class="btn-primary" style="font-size:1.2rem;padding:1rem 3rem;margin-top:1.5rem">Start Game</button>
+    </div>
+
+    <div id="game-play" class="game-screen" style="display:none">
+        <div class="game-hud">
+            <span id="lives-display">❤️❤️❤️</span>
+            <span id="score-display">Score: 0</span>
+            <span id="question-display">Q 1/10</span>
+        </div>
+        <div class="game-question-box">
+            <p id="question-text" class="game-question"></p>
+            <button onclick="useHint()" class="hint-btn" id="hint-btn">💡 Hint</button>
+            <p id="hint-text" class="hint-text" style="display:none"></p>
+        </div>
+        <div id="options-grid" class="options-grid"></div>
+        <div id="feedback" class="feedback-box" style="display:none"></div>
+    </div>
+
+    <div id="game-over" class="game-screen" style="display:none">
+        <h2 id="result-title">Game Over!</h2>
+        <div class="result-stats">
+            <div class="result-stat"><span id="final-score">0</span><small>Correct</small></div>
+            <div class="result-stat"><span id="final-points">0</span><small>Points Earned</small></div>
+        </div>
+        <p id="result-message" class="result-msg"></p>
+        <button onclick="location.reload()" class="btn-primary" style="margin-top:1rem">Play Again</button>
+        <a asp-controller="Home" asp-action="Profile" class="btn-primary" style="margin-top:0.5rem">View Profile</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let questions = [], current = 0, lives = 3, score = 0, hintUsed = false;
+
+        async function startGame() {
+            const res = await fetch('/Game/GetQuestions');
+            questions = await res.json();
+            current = 0; lives = 3; score = 0;
+            document.getElementById('game-start').style.display = 'none';
+            document.getElementById('game-play').style.display = 'block';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (current >= questions.length || lives <= 0) { endGame(); return; }
+            const q = questions[current];
+            hintUsed = false;
+            document.getElementById('question-text').textContent = q.question;
+            document.getElementById('hint-text').style.display = 'none';
+            document.getElementById('hint-btn').style.display = 'inline-block';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('question-display').textContent = `Q ${current+1}/10`;
+            document.getElementById('score-display').textContent = `Score: ${score}`;
+            document.getElementById('lives-display').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3-lives);
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btn) {
+            const q = questions[current];
+            const correct = selected === q.answer;
+            const feedback = document.getElementById('feedback');
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+            if (correct) {
+                btn.classList.add('correct');
+                score++;
+                feedback.textContent = '✅ Correct!';
+                feedback.className = 'feedback-box feedback-correct';
+            } else {
+                btn.classList.add('wrong');
+                lives--;
+                feedback.textContent = `❌ Wrong! Answer: ${q.answer}`;
+                feedback.className = 'feedback-box feedback-wrong';
+                document.querySelectorAll('.option-btn').forEach(b => { if (b.textContent === q.answer) b.classList.add('correct'); });
+            }
+            feedback.style.display = 'block';
+            setTimeout(() => { current++; showQuestion(); }, 1500);
+        }
+
+        function useHint() {
+            if (hintUsed) return;
+            hintUsed = true;
+            const hint = document.getElementById('hint-text');
+            hint.textContent = '💡 ' + questions[current].hint;
+            hint.style.display = 'block';
+            document.getElementById('hint-btn').style.display = 'none';
+        }
+
+        async function endGame() {
+            document.getElementById('game-play').style.display = 'none';
+            document.getElementById('game-over').style.display = 'block';
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-points').textContent = score * 3;
+            const msgs = ['Keep exploring! 🌱', 'Good effort! 🥉', 'Well done! 🥈', 'Amazing! 🥇', 'Champion! 👑'];
+            const idx = Math.min(Math.floor(score / 2), 4);
+            document.getElementById('result-message').textContent = msgs[idx];
+            document.getElementById('result-title').textContent = lives <= 0 ? 'Game Over! 💔' : 'Quiz Complete! 🎉';
+            const csrf = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            await fetch('/Game/SubmitScore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'RequestVerificationToken': csrf },
+                body: JSON.stringify({ correctAnswers: score })
+            });
+        }
+    </script>
+}

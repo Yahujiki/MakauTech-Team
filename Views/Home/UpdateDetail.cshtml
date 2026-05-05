@@ -1,0 +1,255 @@
+@model MakauTech.Models.Update
+@{
+    ViewData["Title"] = Model.Title;
+    string CategoryColor(string? c) => (c ?? "").ToLower() switch
+    {
+        "politics" or "civic"           => "#a855f7",
+        "infrastructure" or "aviation"  => "#3b82f6",
+        "festival" or "heritage"        => "#f59e0b",
+        "culture"                       => "#dc2626",
+        "tourism" or "community"        => "#10b981",
+        "environment"                   => "#22c55e",
+        "health"                        => "#ec4899",
+        _                               => "#64748b",
+    };
+    string ReadingTime(string body) {
+        if (string.IsNullOrWhiteSpace(body)) return "1 min read";
+        var words = body.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Length;
+        var mins = System.Math.Max(1, (int)System.Math.Ceiling(words / 220.0));
+        return $"{mins} min read";
+    }
+    string DomainOf(string? url) {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        try { var u = new System.Uri(url); var h = u.Host.ToLower();
+              return h.StartsWith("www.") ? h.Substring(4) : h; }
+        catch { return ""; }
+    }
+    var color  = CategoryColor(Model.Category);
+    var domain = DomainOf(Model.SourceUrl);
+}
+
+@section Styles {
+<style>
+.ud { max-width: 780px; margin: 2rem auto 4rem; padding: 0 1.5rem; color: var(--text, #111827); }
+
+.ud-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--text-light, #64748b);
+    font-size: 0.85rem; font-weight: 600;
+    text-decoration: none; margin-bottom: 1.5rem;
+    transition: color 0.18s, gap 0.18s;
+}
+.ud-back:hover { color: var(--accent, #22c55e); gap: 0.6rem; }
+[data-theme="dark"] .ud-back { color: rgba(226,232,240,0.65); }
+
+.ud-meta {
+    display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.ud-cat {
+    display: inline-flex; padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.ud-meta-text {
+    font-size: 0.82rem; color: var(--text-light, #64748b);
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.ud-meta-text .dot { opacity: 0.5; }
+[data-theme="dark"] .ud-meta-text { color: rgba(226,232,240,0.65); }
+
+.ud-title {
+    font-family: var(--mk-font-display, 'Fraunces', serif);
+    font-size: clamp(30px, 5vw, 46px); font-weight: 800;
+    color: var(--text, #0f172a);
+    margin: 0 0 1rem 0;
+    line-height: 1.1; letter-spacing: -0.025em;
+}
+[data-theme="dark"] .ud-title { color: #f8fafc; }
+
+.ud-summary {
+    font-family: var(--mk-font-display, 'Fraunces', serif);
+    font-size: clamp(18px, 2vw, 22px);
+    color: var(--text-light, #475569);
+    line-height: 1.55;
+    margin: 0 0 2rem 0;
+    font-style: italic;
+    border-left: 3px solid var(--accent, #22c55e);
+    padding-left: 1.1rem;
+}
+[data-theme="dark"] .ud-summary { color: rgba(226,232,240,0.78); }
+
+.ud-img {
+    width: 100%; aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 16px;
+    margin: 0 0 2rem 0;
+    box-shadow: 0 14px 40px rgba(15,23,42,0.18);
+}
+
+.ud-body {
+    font-size: 17px;
+    color: var(--text, #1f2937);
+    line-height: 1.78;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 2rem;
+}
+[data-theme="dark"] .ud-body { color: rgba(226,232,240,0.88); }
+.ud-body::first-letter {
+    font-family: var(--mk-font-display, 'Fraunces', serif);
+    font-size: 3.4em;
+    float: left;
+    line-height: 1;
+    margin: 0.05em 0.1em 0 0;
+    color: var(--accent, #22c55e);
+    font-weight: 800;
+}
+
+/* Source citation block — the prominent part */
+.ud-source {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1.2rem 1.4rem;
+    background: linear-gradient(135deg, rgba(34,197,94,0.07), rgba(34,197,94,0.02));
+    border: 1px solid rgba(34,197,94,0.20);
+    border-radius: 14px;
+    margin: 2rem 0;
+}
+[data-theme="dark"] .ud-source {
+    background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(15,23,42,0.30));
+    border-color: rgba(34,197,94,0.30);
+}
+.ud-source-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(34,197,94,0.15);
+    color: var(--accent, #22c55e);
+    display: grid; place-items: center;
+}
+.ud-source-icon svg { width: 22px; height: 22px; }
+.ud-source-body { flex: 1; min-width: 0; }
+.ud-source-label {
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em;
+    color: var(--accent, #22c55e);
+    text-transform: uppercase;
+    margin-bottom: 0.18rem;
+}
+.ud-source-name {
+    font-weight: 700;
+    color: var(--text, #0f172a);
+    font-size: 1rem;
+    line-height: 1.3;
+}
+[data-theme="dark"] .ud-source-name { color: #f1f5f9; }
+.ud-source-domain {
+    font-size: 0.78rem;
+    color: var(--text-light, #64748b);
+    margin-top: 2px;
+}
+[data-theme="dark"] .ud-source-domain { color: rgba(226,232,240,0.6); }
+.ud-source-link {
+    flex-shrink: 0;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    background: var(--accent, #22c55e);
+    color: #fff !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: filter 0.15s, transform 0.15s;
+    white-space: nowrap;
+}
+.ud-source-link:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.ud-source-link svg { width: 12px; height: 12px; }
+
+/* Footer / caveat */
+.ud-foot {
+    margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 1px solid rgba(15,23,42,0.08);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-light, #64748b);
+}
+[data-theme="dark"] .ud-foot {
+    border-top-color: rgba(255,255,255,0.08);
+    color: rgba(226,232,240,0.55);
+}
+.ud-foot a {
+    color: var(--accent, #22c55e);
+    font-weight: 700;
+    text-decoration: none;
+}
+.ud-foot a:hover { text-decoration: underline; }
+</style>
+}
+
+<article class="ud mk-fade-in">
+    <a href="@Url.Action("Updates","Home")" class="ud-back">← Back to all news</a>
+
+    <div class="ud-meta">
+        @if (!string.IsNullOrEmpty(Model.Category))
+        {
+            <span class="ud-cat" style="background:@(color)1F; color:@color;">@Model.Category.ToUpper()</span>
+        }
+        <span class="ud-meta-text">
+            <span>@Model.CreatedAt.ToLocalTime().ToString("dddd, dd MMMM yyyy")</span>
+            <span class="dot">·</span>
+            <span>@ReadingTime(Model.Body)</span>
+        </span>
+    </div>
+
+    <h1 class="ud-title">@Model.Title</h1>
+
+    @if (!string.IsNullOrEmpty(Model.Summary))
+    {
+        <p class="ud-summary">@Model.Summary</p>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <img src="@Model.ImageUrl" alt="@Model.Title" class="ud-img" loading="lazy" />
+    }
+
+    <div class="ud-body">@Model.Body</div>
+
+    @* Source citation card — visible, beautiful, real *@
+    <div class="ud-source">
+        <div class="ud-source-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"/>
+                <line x1="8" y1="9" x2="14" y2="9"/>
+                <line x1="8" y1="13" x2="14" y2="13"/>
+                <line x1="8" y1="17" x2="11" y2="17"/>
+                <path d="M18 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/>
+            </svg>
+        </div>
+        <div class="ud-source-body">
+            <div class="ud-source-label">Story sourced from</div>
+            <div class="ud-source-name">@Model.AuthorName</div>
+            @if (!string.IsNullOrEmpty(domain))
+            {
+                <div class="ud-source-domain">@domain</div>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SourceUrl))
+        {
+            <a class="ud-source-link" href="@Model.SourceUrl" target="_blank" rel="noopener noreferrer">
+                Open source
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+            </a>
+        }
+    </div>
+
+    <div class="ud-foot">
+        <span>Curated by MakauTech · for the Sibu &amp; Sarawak community</span>
+        <a href="@Url.Action("Updates","Home")">More stories →</a>
+    </div>
+</article>

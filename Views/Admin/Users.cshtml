@@ -1,0 +1,37 @@
+﻿@model List<MakauTech.Models.User>
+@{
+    ViewData["Title"] = "Users";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+    <h2 style="margin:0;">Users</h2>
+    <form method="post" asp-action="ResetLeaderboard" onsubmit="return confirm('Reset ALL user points, badges and visit history? This cannot be undone.')">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="admin-btn-sm admin-btn-danger" style="padding:0.5rem 1.25rem;font-size:0.9rem;">🔄 Reset Leaderboard</button>
+    </form>
+</div>
+@if (TempData["AdminSuccess"] != null)
+{
+    <div class="alert alert-success" style="margin-bottom:1rem;">✅ @TempData["AdminSuccess"]</div>
+}
+<table class="admin-table">
+    <thead><tr><th>Name</th><th>Email</th><th>Level</th><th>Points</th><th>Badges</th><th>Actions</th></tr></thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Name</td>
+                <td>@u.Email</td>
+                <td>@u.Level</td>
+                <td>@u.Points</td>
+                <td>@u.Badges.Count</td>
+                <td>
+                    <form method="post" asp-action="DeleteUser" style="display:inline">
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button type="submit" class="admin-btn-sm admin-btn-danger" onclick="return confirm('Delete user?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

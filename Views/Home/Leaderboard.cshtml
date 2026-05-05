@@ -1,0 +1,370 @@
+@model List<MakauTech.Models.User>
+@{
+    ViewData["Title"] = "Leaderboard";
+    var isAdmin = ViewBag.IsAdmin == true;
+    var currentUserId = ViewBag.CurrentUserId ?? 0;
+
+    string[] avatarGradients = {
+        "linear-gradient(135deg,#f59e0b,#d97706)",
+        "linear-gradient(135deg,#94a3b8,#64748b)",
+        "linear-gradient(135deg,#cd7f32,#92400e)",
+        "linear-gradient(135deg,#22c55e,#16a34a)",
+        "linear-gradient(135deg,#3b82f6,#2563eb)",
+        "linear-gradient(135deg,#a855f7,#7c3aed)",
+        "linear-gradient(135deg,#ec4899,#db2777)",
+        "linear-gradient(135deg,#14b8a6,#0d9488)"
+    };
+
+    string LevelClass(string level) => level?.ToLower() switch {
+        "gold" => "lb-level--gold",
+        "silver" => "lb-level--silver",
+        "bronze" => "lb-level--bronze",
+        "explorer" => "lb-level--explorer",
+        _ => "lb-level--newbie"
+    };
+
+    string Initial(string name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpper();
+
+    string GradientFor(int idx) => avatarGradients[idx % avatarGradients.Length];
+
+    var top3 = Model.Take(3).ToList();
+    var allUsers = Model.ToList();
+}
+
+@section Styles {
+<style>
+body { background: #030d06 !important; }
+.main-content { background: #030d06; }
+.lb-page .page-hero { display: none; }
+
+/* ── Animated particles background ── */
+.lb-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.lb-particle {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(34,197,94,0.4); animation: lb-float 6s ease-in-out infinite;
+}
+.lb-particle:nth-child(2) { width: 3px; height: 3px; left: 15%; top: 20%; animation-delay: 0.5s; animation-duration: 8s; background: rgba(245,158,11,0.3); }
+.lb-particle:nth-child(3) { width: 5px; height: 5px; left: 75%; top: 30%; animation-delay: 1s; animation-duration: 7s; background: rgba(59,130,246,0.3); }
+.lb-particle:nth-child(4) { width: 3px; height: 3px; left: 40%; top: 60%; animation-delay: 1.5s; animation-duration: 9s; background: rgba(168,85,247,0.3); }
+.lb-particle:nth-child(5) { width: 4px; height: 4px; left: 85%; top: 70%; animation-delay: 2s; animation-duration: 6.5s; background: rgba(34,197,94,0.35); }
+.lb-particle:nth-child(6) { width: 2px; height: 2px; left: 25%; top: 80%; animation-delay: 0.8s; animation-duration: 7.5s; background: rgba(245,158,11,0.25); }
+@@keyframes lb-float {
+    0%,100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
+    25% { transform: translateY(-30px) translateX(10px) scale(1.5); opacity: 0.8; }
+    50% { transform: translateY(-60px) translateX(-5px) scale(1); opacity: 0.5; }
+    75% { transform: translateY(-30px) translateX(15px) scale(1.3); opacity: 0.7; }
+}
+
+/* ── Trophy spin animation ── */
+@@keyframes lb-trophy-spin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+.lb-trophy-3d {
+    display: inline-block; font-size: 2.5rem; animation: lb-trophy-spin 4s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(245,158,11,0.5));
+}
+
+/* ── Podium glow pulse ── */
+@@keyframes lb-glow-pulse {
+    0%,100% { box-shadow: 0 0 15px rgba(245,158,11,0.2), inset 0 0 20px rgba(245,158,11,0.05); }
+    50% { box-shadow: 0 0 30px rgba(245,158,11,0.4), inset 0 0 30px rgba(245,158,11,0.1); }
+}
+.lb-pod--1 { animation: pod-in 0.6s cubic-bezier(.34,1.36,.64,1) both 0.18s, lb-glow-pulse 3s ease-in-out infinite 1s !important; }
+
+/* ── Table section ── */
+.lb-table-wrap {
+    max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem;
+}
+.lb-table-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;
+}
+.lb-table-title {
+    font-size: 1.1rem; font-weight: 800; color: #e6edf3; display: flex; align-items: center; gap: 0.5rem;
+}
+.lb-table-title span { font-size: 1.2rem; }
+.lb-table-count {
+    font-size: 0.82rem; font-weight: 700; color: #4ade80;
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+    padding: 0.3rem 0.8rem; border-radius: 999px;
+}
+
+/* The ranked table */
+.lb-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: linear-gradient(135deg, rgba(7,29,15,0.85), rgba(3,13,6,0.92));
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    border: 1.5px solid rgba(34,197,94,0.15);
+}
+.lb-table thead th {
+    background: linear-gradient(135deg, #071d0f, #0a2915);
+    color: rgba(255,255,255,0.8); font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 0.85rem 1rem; text-align: left;
+    border-bottom: 2px solid rgba(34,197,94,0.3);
+}
+.lb-table thead th:first-child { border-radius: 16px 0 0 0; text-align: center; width: 60px; }
+.lb-table thead th:last-child { border-radius: 0 16px 0 0; text-align: right; }
+.lb-table tbody tr {
+    transition: all 0.2s;
+    animation: lb-row-in 0.4s ease both;
+}
+.lb-table tbody tr:hover { background: rgba(34,197,94,0.06); }
+.lb-table tbody tr.lb-tr-me { background: rgba(34,197,94,0.1); }
+.lb-table tbody tr.lb-tr-me:hover { background: rgba(34,197,94,0.16); }
+.lb-table tbody td {
+    padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.92rem; vertical-align: middle; color: #e6edf3;
+}
+.lb-table tbody tr:last-child td { border-bottom: none; }
+
+/* Rank column */
+.lb-td-rank {
+    text-align: center; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.4); width: 60px;
+}
+.lb-td-rank--1 { color: #f59e0b; font-size: 1.15rem; }
+.lb-td-rank--2 { color: #94a3b8; font-size: 1.1rem; }
+.lb-td-rank--3 { color: #cd7f32; font-size: 1.05rem; }
+.lb-rank-medal { font-size: 1.2rem; }
+
+/* Player column */
+.lb-td-player { display: flex; align-items: center; gap: 0.75rem; }
+.lb-tbl-avatar {
+    width: 38px; height: 38px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 800; color: #fff; font-size: 0.95rem; flex-shrink: 0;
+}
+.lb-tbl-name { font-weight: 700; color: #e6edf3; }
+.lb-tbl-meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+
+/* Points column */
+.lb-td-pts {
+    text-align: right; font-weight: 800; font-size: 1.05rem; color: #4ade80;
+}
+.lb-td-pts small { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.35); }
+
+/* Level badge */
+.lb-tbl-level {
+    display: inline-block; font-size: 0.75rem; font-weight: 700;
+    padding: 0.2rem 0.6rem; border-radius: 6px;
+}
+
+/* Badges column */
+.lb-td-badges { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+
+/* Stats column */
+.lb-td-stats { font-size: 0.82rem; color: rgba(255,255,255,0.45); white-space: nowrap; }
+
+/* Admin toolbar */
+.lb-admin-bar {
+    max-width: 900px; margin: 0 auto; padding: 0 1.5rem 1rem;
+}
+.lb-admin-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.08));
+    border: 1.5px solid rgba(245,158,11,0.3); border-radius: 14px;
+    padding: 0.85rem 1.25rem; gap: 1rem; flex-wrap: wrap;
+}
+.lb-admin-text { font-size: 0.88rem; font-weight: 700; color: #fde68a; display: flex; align-items: center; gap: 0.4rem; }
+.lb-admin-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.lb-btn-reset {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 1.1rem; border: 2px solid #ef4444; border-radius: 10px;
+    background: transparent; color: #fca5a5; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s;
+}
+.lb-btn-reset:hover { background: #dc2626; color: #fff; }
+.lb-btn-admin-users {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 1.1rem; border: 2px solid #3b82f6; border-radius: 10px;
+    background: transparent; color: #93c5fd; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+}
+.lb-btn-admin-users:hover { background: #2563eb; color: #fff; }
+
+/* Your rank highlight card */
+.lb-your-rank {
+    max-width: 900px; margin: 0 auto; padding: 0 1.5rem 1.5rem;
+}
+.lb-your-inner {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(7,50,25,0.8), rgba(5,30,15,0.9));
+    border: 1.5px solid rgba(34,197,94,0.3); border-radius: 14px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 0 20px rgba(34,197,94,0.06);
+}
+.lb-your-emoji { font-size: 1.5rem; }
+.lb-your-text { flex: 1; font-size: 0.92rem; color: rgba(255,255,255,0.7); font-weight: 600; }
+.lb-your-text strong { color: #4ade80; }
+.lb-your-pts { font-size: 1.2rem; font-weight: 800; color: #4ade80; }
+
+/* Responsive */
+@@media (max-width: 640px) {
+    .lb-table thead th:nth-child(4),
+    .lb-table thead th:nth-child(5),
+    .lb-table tbody td:nth-child(4),
+    .lb-table tbody td:nth-child(5) { display: none; }
+    .lb-admin-inner { flex-direction: column; text-align: center; }
+}
+</style>
+}
+
+<div class="lb-page">
+
+<!-- ── Legendary Hero with particles ── -->
+<div class="lb-hero">
+    <div class="lb-orb lb-orb-1"></div>
+    <div class="lb-orb lb-orb-2"></div>
+    <div class="lb-particles">
+        <div class="lb-particle" style="left:10%;top:40%"></div>
+        <div class="lb-particle"></div>
+        <div class="lb-particle"></div>
+        <div class="lb-particle"></div>
+        <div class="lb-particle"></div>
+        <div class="lb-particle"></div>
+    </div>
+    <span class="lb-hero-kicker"><span class="lb-trophy-3d">🏆</span> Global Rankings</span>
+    <h1>Top <span>Explorers</span></h1>
+    <p>Climb the leaderboard by visiting places, writing reviews, and conquering mini games.</p>
+
+    @if (top3.Count > 0)
+    {
+        <!-- Podium: 2nd | 1st | 3rd -->
+        <div class="lb-podium">
+            @if (top3.Count >= 2)
+            {
+                var u = top3[1];
+                <div class="lb-pod lb-pod--2">
+                    <div class="lb-pod-crown">🥈</div>
+                    <div class="lb-pod-avatar" style="background:@GradientFor(1)">@Initial(u.Name)</div>
+                    <div class="lb-pod-name">@u.Name</div>
+                    <div class="lb-pod-pts">@u.Points pts</div>
+                    <div class="lb-pod-rank">2ND</div>
+                </div>
+            }
+            @{
+                var champ = top3[0];
+            }
+            <div class="lb-pod lb-pod--1">
+                <div class="lb-pod-crown">👑</div>
+                <div class="lb-pod-avatar" style="background:@GradientFor(0)">@Initial(champ.Name)</div>
+                <div class="lb-pod-name">@champ.Name</div>
+                <div class="lb-pod-pts">@champ.Points pts</div>
+                <div class="lb-pod-rank">1ST</div>
+            </div>
+            @if (top3.Count >= 3)
+            {
+                var u = top3[2];
+                <div class="lb-pod lb-pod--3">
+                    <div class="lb-pod-crown">🥉</div>
+                    <div class="lb-pod-avatar" style="background:@GradientFor(2)">@Initial(u.Name)</div>
+                    <div class="lb-pod-name">@u.Name</div>
+                    <div class="lb-pod-pts">@u.Points pts</div>
+                    <div class="lb-pod-rank">3RD</div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div style="margin-top:2rem;opacity:0.7;font-size:0.95rem;">No explorers on the board yet — be the first!</div>
+    }
+</div>
+
+<!-- ── Admin toolbar (only visible to admin) ── -->
+@if (isAdmin)
+{
+    <div class="lb-admin-bar">
+        <div class="lb-admin-inner">
+            <div class="lb-admin-text">⚙️ Admin Controls</div>
+            <div class="lb-admin-actions">
+                <a asp-controller="Admin" asp-action="Users" class="lb-btn-admin-users">👥 Manage Users</a>
+                <form asp-controller="Admin" asp-action="ResetLeaderboard" method="post" style="display:inline"
+                      onsubmit="return confirm('⚠️ Reset ALL user points, badges & visits to zero? This cannot be undone!')">
+                    <button type="submit" class="lb-btn-reset">🔄 Reset Leaderboard</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ── Your rank highlight (for logged-in users) ── -->
+@if (ViewBag.IsLoggedIn == true && currentUserId > 0)
+{
+    var myRank = allUsers.FindIndex(u => u.Id == (int)currentUserId) + 1;
+    var myUser = allUsers.FirstOrDefault(u => u.Id == (int)currentUserId);
+    if (myUser != null && myRank > 0)
+    {
+        <div class="lb-your-rank">
+            <div class="lb-your-inner">
+                <div class="lb-your-emoji">📍</div>
+                <div class="lb-your-text">Your rank: <strong>#@myRank</strong> — @myUser.Name</div>
+                <div class="lb-your-pts">@myUser.Points pts</div>
+            </div>
+        </div>
+    }
+}
+
+<!-- ── Full rankings table ── -->
+<div class="lb-table-wrap">
+    <div class="lb-table-header">
+        <div class="lb-table-title"><span>📊</span> Full Rankings</div>
+        <div class="lb-table-count">@allUsers.Count explorer@(allUsers.Count == 1 ? "" : "s")</div>
+    </div>
+
+    @if (allUsers.Count == 0)
+    {
+        <div class="lb-empty">
+            <div style="font-size:3.5rem">🗺️</div>
+            <p><strong>No explorers yet.</strong></p>
+            <p>Register an account, explore Sibu, and earn points to appear here.</p>
+        </div>
+    }
+    else
+    {
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Explorer</th>
+                    <th>Level</th>
+                    <th>Stats</th>
+                    <th style="text-align:right">Points</th>
+                </tr>
+            </thead>
+            <tbody>
+            @for (int i = 0; i < allUsers.Count; i++)
+            {
+                var u = allUsers[i];
+                var rank = i + 1;
+                var isMe = u.Id == (int)currentUserId;
+                <tr class="@(isMe ? "lb-tr-me" : "")" style="animation-delay:@(0.03 * rank)s">
+                    <td class="lb-td-rank @(rank == 1 ? "lb-td-rank--1" : rank == 2 ? "lb-td-rank--2" : rank == 3 ? "lb-td-rank--3" : "")">
+                        @if (rank == 1) { <span class="lb-rank-medal">🥇</span> }
+                        else if (rank == 2) { <span class="lb-rank-medal">🥈</span> }
+                        else if (rank == 3) { <span class="lb-rank-medal">🥉</span> }
+                        else { <span>#@rank</span> }
+                    </td>
+                    <td>
+                        <div class="lb-td-player">
+                            <div class="lb-tbl-avatar" style="background:@GradientFor(rank - 1)">@Initial(u.Name)</div>
+                            <div>
+                                <div class="lb-tbl-name">@u.Name @(isMe ? "(You)" : "")</div>
+                                <div class="lb-tbl-meta">@u.Badges.Count badge@(u.Badges.Count == 1 ? "" : "s")</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="lb-tbl-level @LevelClass(u.Level)">@u.Level</span></td>
+                    <td class="lb-td-stats">🗺️ @u.VisitedPlaceIds.Count places</td>
+                    <td class="lb-td-pts">@u.Points <small>pts</small></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+</div>

@@ -1,0 +1,665 @@
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject MakauTech.Data.MakauTechDbContext MkDbCtx
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string NavActive(string c, string a) => ctrl.Equals(c, StringComparison.OrdinalIgnoreCase) && act.Equals(a, StringComparison.OrdinalIgnoreCase) ? "sidebar-link--active" : "";
+    // Issue + persist the antiforgery token cookie (HttpOnly, __Host-, SameSite=Strict).
+    // The header half is exposed to JS via <meta> below — the cookie half stays HttpOnly.
+    var csrfTokens = Antiforgery.GetAndStoreTokens(Context);
+
+    const string mkTermsVersion = "2026-04";
+    bool mkShouldShowUiTutorial = false;
+    bool mkNeedsAgreement = false;
+    var mkUid = Context.Session.GetInt32("UserId");
+    if (mkUid.HasValue && Context.Session.GetString("mk-show-tutorial") == "pending")
+    {
+        var mkUser = MkDbCtx.Users.AsNoTracking().FirstOrDefault(u => u.Id == mkUid.Value);
+        mkShouldShowUiTutorial = mkUser != null && !mkUser.UiTutorialSeen;
+    }
+    if (mkUid.HasValue)
+    {
+        var mkUser = MkDbCtx.Users.AsNoTracking().FirstOrDefault(u => u.Id == mkUid.Value);
+        mkNeedsAgreement = mkUser != null && mkUser.TermsVersionAccepted != mkTermsVersion;
+    }
+}
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<script>
+// Instant theme apply (before CSS loads to avoid flash)
+(function(){try{var t=localStorage.getItem('makautech-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
+</script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @* Antiforgery header value — cookie half is HttpOnly + __Host-, this half is what JS sends as X-CSRF-TOKEN *@
+    <meta name="csrf-token" content="@csrfTokens.RequestToken" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>@ViewData["Title"] · MakauTech</title>
+    <meta name="description" content="Discover Sibu, Sarawak — Foochow food, Rajang River, jungle escapes. Explore curated places, play mini-games, earn badges." />
+    <meta name="theme-color" content="#10b981" />
+    <link rel="icon" type="image/png" href="~/Images/icon.png" />
+    <link rel="apple-touch-icon" href="~/Images/icon.png" />
+
+    @* Open Graph / social previews *@
+    <meta property="og:site_name" content="MakauTech" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@(ViewData["Title"] ?? "MakauTech")" />
+    <meta property="og:description" content="Tourism app for Sibu, Sarawak — places, reviews, games, leaderboard." />
+    <meta property="og:image" content="@Url.Content("~/Images/Background.jpg")" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["Title"] ?? "MakauTech")" />
+    <meta name="twitter:description" content="Tourism app for Sibu, Sarawak — places, reviews, games, leaderboard." />
+    <meta name="twitter:image" content="@Url.Content("~/Images/Background.jpg")" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/polish.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/games.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/splash.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/security.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme-fixes.css" asp-append-version="true" />
+    @* Front-end zero-trust + UX primitives. Loaded early (defer) so MakauSecurity is ready
+       before any inline page script runs, but never blocks parse. *@
+    <script src="~/js/security.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="@(ViewBag.IsLoggedIn == true ? "has-sidebar" : "no-sidebar")">
+    @* Antiforgery token rendered globally as a fallback for older inline scripts.
+       Modern callers should read window.MakauSecurity.getCsrfToken() (sourced from <meta>). *@
+    @Html.AntiForgeryToken()
+
+    @* Pre-splash decision: must run BEFORE markup paints to avoid FOUC. *@
+    <script>
+    (function () {
+        try {
+            var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+            var navType = nav ? nav.type : (performance.navigation ? ['navigate','reload','back_forward','prerender'][performance.navigation.type] : 'navigate');
+            var firstVisit = !sessionStorage.getItem('mk-visited');
+            var skipFlag = sessionStorage.getItem('mk-skip-splash') === '1';
+            // show splash on first visit OR explicit reload (F5/Ctrl+R)
+            // skip on internal link nav (skip flag set on click) + back/forward
+            var show = (navType === 'reload') || (firstVisit && navType !== 'back_forward');
+            if (skipFlag) { show = false; sessionStorage.removeItem('mk-skip-splash'); }
+            if (show) {
+                document.documentElement.classList.add('mk-splash-active');
+            }
+            sessionStorage.setItem('mk-visited', '1');
+            window.__mkSplash = show;
+        } catch (e) { window.__mkSplash = false; }
+    })();
+    </script>
+
+    @* Pixel-art F5 splash (rendered inside body but hidden via JS if not needed) *@
+    <div id="mk-splash" aria-hidden="true" style="display:none;">
+        <div class="mk-splash-stack">
+            <img src="~/Images/logo.png" alt="MakauTech" class="mk-splash-brand" />
+            <div class="mk-splash-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="mk-splash-bar-fill"></div>
+                <div class="mk-splash-bar-shine"></div>
+            </div>
+            <div class="mk-splash-status">
+                <span class="mk-splash-label">LOADING</span>
+                <span class="mk-splash-pct">0%</span>
+            </div>
+        </div>
+    </div>
+
+    @* Top progress bar — shows on internal link clicks and page navigation. *@
+    <div id="mk-progress" aria-hidden="true"></div>
+    <script>
+    (function () {
+        /* ── Pixel splash ───────────────────────────────────────── */
+        var splash = document.getElementById('mk-splash');
+        if (splash && window.__mkSplash) {
+            splash.style.display = 'flex';
+            splash.setAttribute('aria-hidden', 'false');
+            var fill   = splash.querySelector('.mk-splash-bar-fill');
+            var pctEl  = splash.querySelector('.mk-splash-pct');
+            var status = splash.querySelector('.mk-splash-status');
+            var label  = splash.querySelector('.mk-splash-label');
+            var pct = 0;
+            // Tween 0 → ~92% over 900ms while page settles
+            var iv = setInterval(function () {
+                if (pct < 92) {
+                    pct += Math.max(2, Math.round((92 - pct) * 0.18));
+                    if (pct > 92) pct = 92;
+                    fill.style.width = pct + '%';
+                    pctEl.textContent = pct + '%';
+                }
+            }, 60);
+            // Snap to 100% + show "COMPLETED!" when window has loaded
+            function finish() {
+                clearInterval(iv);
+                pct = 100;
+                fill.style.width = '100%';
+                pctEl.textContent = '100%';
+                label.textContent = 'COMPLETED!';
+                if (status) status.classList.add('is-done');
+                setTimeout(function () {
+                    splash.classList.add('is-hidden');
+                    document.documentElement.classList.remove('mk-splash-active');
+                    setTimeout(function () { splash.style.display = 'none'; }, 450);
+                }, 420);
+            }
+            if (document.readyState === 'complete') {
+                setTimeout(finish, 600);
+            } else {
+                window.addEventListener('load', function () { setTimeout(finish, 280); });
+            }
+        }
+
+        /* ── Top progress bar (link clicks) ─────────────────────── */
+        var bar = document.getElementById('mk-progress');
+        if (!bar) return;
+        var hideTimer = null;
+
+        function start() {
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+            bar.classList.remove('is-done');
+            void bar.offsetWidth;
+            bar.classList.add('is-loading');
+        }
+        function done() {
+            bar.classList.remove('is-loading');
+            bar.classList.add('is-done');
+            hideTimer = setTimeout(function () { bar.classList.remove('is-done'); }, 600);
+        }
+
+        // Internal link click → skip splash next page + show top bar
+        document.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest ? e.target.closest('a') : null;
+            if (!a) return;
+            if (a.target === '_blank') return;
+            if (a.hasAttribute('download')) return;
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            var href = a.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
+                href.startsWith('mailto:') || href.startsWith('tel:')) return;
+            try {
+                var url = new URL(a.href, window.location.origin);
+                if (url.origin !== window.location.origin) return;
+                if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+            } catch (_) { return; }
+            try { sessionStorage.setItem('mk-skip-splash', '1'); } catch (_) {}
+            start();
+        }, true);
+
+        document.addEventListener('submit', function (e) {
+            var f = e.target;
+            if (!f || f.tagName !== 'FORM') return;
+            if (f.target === '_blank') return;
+            if (f.hasAttribute('data-ajax') || f.classList.contains('no-progress')) return;
+            try { sessionStorage.setItem('mk-skip-splash', '1'); } catch (_) {}
+            start();
+        }, true);
+
+        window.addEventListener('pageshow', done);
+        window.addEventListener('load', done);
+        window.addEventListener('beforeunload', start);
+    })();
+    </script>
+
+    <div class="app-shell">
+        @if (ViewBag.IsLoggedIn == true)
+        {
+        <aside class="sidebar" id="app-sidebar" aria-label="Site navigation">
+            <div class="sidebar-brand-row">
+                <div class="sidebar-brand">
+                    <a asp-controller="Home" asp-action="Index" title="MakauTech home" class="sidebar-logo-link"><img src="~/Images/icon.png" alt="Home" class="sidebar-logo" /></a>
+                    <span class="sidebar-brand-text"><span class="brand-makau">Makau</span><span class="brand-tech">Tech</span></span>
+                </div>
+                <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
+            </div>
+            <p class="sidebar-tagline">🦢 Gamified Tourism · Sibu, Sarawak</p>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link @NavActive("Home", "Index")" id="tut-nav-dashboard" asp-controller="Home" asp-action="Index">🏠 Dashboard</a>
+                <a class="sidebar-link @NavActive("Home", "Explore")" id="tut-nav-explore" asp-controller="Home" asp-action="Explore">📍 Explore places</a>
+                <a class="sidebar-link @NavActive("Home", "Games")" id="tut-nav-games" asp-controller="Home" asp-action="Games">🎮 Games hub</a>
+                <a class="sidebar-link @NavActive("Home", "Leaderboard")" asp-controller="Home" asp-action="Leaderboard">🏆 Leaderboard</a>
+                <a class="sidebar-link @NavActive("Home", "Achievements")" asp-controller="Home" asp-action="Achievements">🎖️ Achievements</a>
+                <a class="sidebar-link @NavActive("Home", "Map")" asp-controller="Home" asp-action="Map">🗺️ Live Map</a>
+                <a class="sidebar-link @NavActive("Home", "Calendar")" asp-controller="Home" asp-action="Calendar">📅 Calendar</a>
+                <a class="sidebar-link @NavActive("Home", "Updates")" asp-controller="Home" asp-action="Updates">📢 Updates</a>
+                <a class="sidebar-link @NavActive("Home", "About")" asp-controller="Home" asp-action="About">ℹ️ About</a>
+                <a class="sidebar-link @NavActive("Home", "Settings")" asp-controller="Home" asp-action="Settings">⚙️ Settings</a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a asp-controller="Home" asp-action="Profile" class="sidebar-profile">
+                    <span>👤 @ViewBag.UserName</span>
+                    <span class="sidebar-pts">@ViewBag.UserPoints pts · @ViewBag.UserLevel</span>
+                </a>
+                <button type="button" class="sidebar-btn sidebar-btn--ghost" id="sidebarDarkToggle" onclick="MakauDark.toggle()" style="display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+                    <span id="sidebarDarkIcon">🌙</span> <span id="sidebarDarkLabel">Dark Mode</span>
+                </button>
+                <a asp-controller="Home" asp-action="Logout" class="sidebar-btn sidebar-btn--ghost">Logout</a>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+        }
+
+        <div class="app-main">
+            <header class="topbar">
+                @if (ViewBag.IsLoggedIn == true)
+                {
+                    <button type="button" class="topbar-menu" id="sidebarOpen" aria-expanded="false" aria-controls="app-sidebar" aria-label="Open menu">
+                        <span class="topbar-burger" aria-hidden="true"></span>
+                        <span class="topbar-burger" aria-hidden="true"></span>
+                        <span class="topbar-burger" aria-hidden="true"></span>
+                    </button>
+                }
+                <div class="topbar-title">
+                    <a asp-controller="Home" asp-action="Index" class="topbar-logo-link"><img src="~/Images/icon.png" alt="Home" class="topbar-logo" /></a>
+                    <span class="topbar-brand-text"><span class="brand-makau">Makau</span><span class="brand-tech">Tech</span></span>
+                </div>
+                @if (ViewBag.IsLoggedIn != true && ViewBag.HideAuthButtons != true)
+                {
+                    <div class="topbar-auth">
+                        <button type="button" class="topbar-login" onclick="MakauDark.toggle()" id="topbarDarkBtn" style="cursor:pointer;border:none;">🌙</button>
+                        <a asp-controller="Home" asp-action="Login" class="topbar-login">Login</a>
+                        <a asp-controller="Home" asp-action="Register" class="topbar-register">Register</a>
+                    </div>
+                }
+            </header>
+
+            <main class="main-content">
+                @RenderBody()
+            </main>
+
+            <footer class="footer">
+                <img src="~/Images/swan-full.png" alt="MakauTech" class="footer-logo-full" />
+                <p class="footer-tagline">Discover the hidden gem of Borneo</p>
+                <p class="footer-copyright">&copy; 2026 MakauTech. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+    // Sync sidebar + topbar dark mode buttons with current state
+    (function(){
+        function syncDarkUI() {
+            var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            var icon = document.getElementById('sidebarDarkIcon');
+            var label = document.getElementById('sidebarDarkLabel');
+            var topBtn = document.getElementById('topbarDarkBtn');
+            if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+            if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            if (topBtn) topBtn.textContent = isDark ? '☀️' : '🌙';
+        }
+        syncDarkUI();
+        // Re-sync whenever MakauDark.toggle is called
+        var origToggle = typeof MakauDark !== 'undefined' ? MakauDark.toggle : null;
+        if (origToggle) {
+            MakauDark.toggle = function(){ origToggle(); setTimeout(syncDarkUI, 50); };
+        }
+        // Also observe attribute changes on <html>
+        var obs = new MutationObserver(syncDarkUI);
+        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @* Post-login agreement gate removed — users now accept Terms & Privacy
+       directly on the Login/Register form via the in-form checkbox, so a
+       second modal here would be redundant. The mkNeedsAgreement flag is
+       kept (computed in the head block) only as a future safeguard if the
+       Terms version is bumped. *@
+
+    @* Guided tutorial like in-game coachmarks *@
+    @if (mkShouldShowUiTutorial)
+    {
+        @await Html.PartialAsync("_UiTutorial")
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof MakauCoachTourStart === 'function') MakauCoachTourStart();
+        });
+        </script>
+    }
+
+    <!-- ===== YENKAH AI CHAT WIDGET ===== -->
+    <div id="riva-fab" class="tut-yenkah-fab" title="Chat with Yenkah — your Sibu AI guide" aria-label="Open AI assistant">
+        <span id="riva-fab-icon">🦢</span>
+        <span id="riva-fab-pulse"></span>
+    </div>
+
+    <div id="riva-panel" role="dialog" aria-label="Yenkah AI tourism assistant" aria-hidden="true">
+        <div id="riva-header">
+            <div id="riva-header-info">
+                <span id="riva-avatar">🦢</span>
+                <div>
+                    <strong>Yenkah</strong>
+                    <span id="riva-status">Sibu Tourism Guide · AI</span>
+                </div>
+            </div>
+            <div id="riva-header-actions">
+                <button id="riva-tts-toggle" class="riva-tts-off" title="Voice off — click to enable" aria-label="Toggle voice">🔇</button>
+                <button id="riva-close" aria-label="Close chat">✕</button>
+            </div>
+        </div>
+        <div id="riva-messages" role="log" aria-live="polite">
+            <div class="riva-msg riva-msg--bot">
+                <span class="riva-msg-avatar">🦢</span>
+                <div class="riva-msg-bubble">Hey@(ViewBag.UserName != null ? " " + ViewBag.UserName : " there")! 👋 I'm <strong>Yenkah</strong>, your AI assistant on MakauTech. Ask me anything — from Sibu tourism to tech, science, or just a fun chat! Tap 🔊 to hear my voice.</div>
+            </div>
+        </div>
+        <div id="riva-input-row">
+            <button id="riva-mic" title="Hold to speak" aria-label="Voice input">🎤</button>
+            <input id="riva-input" type="text" placeholder="Ask about Sibu food, places, games…" autocomplete="off" maxlength="200" />
+            <button id="riva-send" aria-label="Send message">➤</button>
+        </div>
+    </div>
+
+    <style>
+    #riva-fab {
+        position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 9000;
+        width: 58px; height: 58px; border-radius: 50%;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        box-shadow: 0 6px 24px rgba(34,197,94,0.5);
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; transition: transform 0.2s, box-shadow 0.2s;
+        user-select: none;
+    }
+    #riva-fab:hover { transform: scale(1.1); box-shadow: 0 8px 32px rgba(34,197,94,0.65); }
+    #riva-fab-pulse {
+        position: absolute; top: 2px; right: 2px; width: 14px; height: 14px;
+        background: #f59e0b; border-radius: 50%; border: 2px solid #fff;
+        /* static dot — no blink */
+    }
+    @@keyframes riva-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.7} }
+
+    #riva-panel {
+        position: fixed; bottom: 5.5rem; right: 1.75rem; z-index: 8999;
+        width: 360px; max-width: calc(100vw - 2rem);
+        background: #fff; border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(7,29,15,0.22), 0 0 0 1px rgba(34,197,94,0.15);
+        display: flex; flex-direction: column;
+        transform: scale(0.92) translateY(16px); opacity: 0;
+        transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), opacity 0.2s;
+        pointer-events: none; overflow: hidden;
+    }
+    #riva-panel.riva-open {
+        transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
+    }
+    #riva-header {
+        background: linear-gradient(135deg, #071d0f, #0d3320);
+        color: #fff; padding: 0.85rem 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    #riva-header-info { display: flex; align-items: center; gap: 0.6rem; }
+    #riva-avatar { font-size: 1.6rem; }
+    #riva-header-info strong { font-size: 0.97rem; font-weight: 700; display: block; }
+    #riva-status { font-size: 0.72rem; opacity: 0.7; }
+    #riva-header-actions { display: flex; gap: 0.4rem; }
+    #riva-header-actions button {
+        background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
+        color: #fff; width: 32px; height: 32px; cursor: pointer; font-size: 0.95rem;
+        display: flex; align-items: center; justify-content: center; transition: background 0.18s;
+    }
+    #riva-header-actions button:hover { background: rgba(255,255,255,0.2); }
+    #riva-tts-toggle.riva-tts-off { opacity: 0.45; }
+
+    #riva-messages {
+        flex: 1; overflow-y: auto; padding: 0.85rem; height: 300px;
+        display: flex; flex-direction: column; gap: 0.65rem;
+        background: #f8fdf9;
+        scrollbar-width: thin; scrollbar-color: #d1fae5 transparent;
+    }
+    .riva-msg { display: flex; gap: 0.5rem; align-items: flex-end; max-width: 92%; }
+    .riva-msg--user { flex-direction: row-reverse; align-self: flex-end; }
+    .riva-msg-avatar { font-size: 1.3rem; flex-shrink: 0; margin-bottom: 2px; }
+    .riva-msg-bubble {
+        background: #fff; border: 1.5px solid #d1fae5;
+        border-radius: 16px 16px 16px 4px; padding: 0.6rem 0.85rem;
+        font-size: 0.875rem; line-height: 1.55; color: #111827;
+        box-shadow: 0 2px 8px rgba(7,29,15,0.06);
+    }
+    .riva-msg--user .riva-msg-bubble {
+        background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+        border: none; border-radius: 16px 16px 4px 16px;
+        box-shadow: 0 3px 12px rgba(34,197,94,0.3);
+    }
+    .riva-typing .riva-msg-bubble { display: flex; gap: 4px; align-items: center; padding: 0.7rem 1rem; }
+    .riva-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; animation: riva-bounce 1.2s infinite both; }
+    .riva-dot:nth-child(2) { animation-delay: 0.18s; }
+    .riva-dot:nth-child(3) { animation-delay: 0.36s; }
+    @@keyframes riva-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+
+    #riva-input-row {
+        display: flex; gap: 0.4rem; padding: 0.7rem 0.85rem;
+        border-top: 1px solid #e8f5ee; background: #fff;
+    }
+    #riva-input {
+        flex: 1; padding: 0.55rem 0.85rem; border: 1.5px solid #d1fae5;
+        border-radius: 12px; font-size: 0.875rem; font-family: inherit;
+        outline: none; transition: border-color 0.18s;
+    }
+    #riva-input:focus { border-color: #22c55e; }
+    #riva-send, #riva-mic {
+        width: 38px; height: 38px; border: none; border-radius: 10px;
+        cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+        transition: background 0.18s, transform 0.15s;
+    }
+    #riva-send { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+    #riva-send:hover { filter: brightness(1.1); transform: scale(1.06); }
+    #riva-mic { background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
+    #riva-mic:hover { background: #dcfce7; }
+    #riva-mic.riva-listening { background: #fee2e2; color: #991b1b; border-color: #fca5a5; animation: riva-pulse 0.8s infinite; }
+    @@media(max-width:480px){ #riva-panel{right:0.75rem;bottom:5rem;width:calc(100vw - 1.5rem);} #riva-fab{right:1rem;bottom:1rem;} }
+    </style>
+
+    <script>
+    (function() {
+        const fab = document.getElementById('riva-fab');
+        const panel = document.getElementById('riva-panel');
+        const closeBtn = document.getElementById('riva-close');
+        const sendBtn = document.getElementById('riva-send');
+        const input = document.getElementById('riva-input');
+        const messages = document.getElementById('riva-messages');
+        const micBtn = document.getElementById('riva-mic');
+        const ttsToggle = document.getElementById('riva-tts-toggle');
+
+        let ttsEnabled = false;
+        let recognition = null;
+        let isListening = false;
+
+        // Toggle panel
+        fab.addEventListener('click', function() {
+            const open = panel.classList.toggle('riva-open');
+            panel.setAttribute('aria-hidden', String(!open));
+            if (open) { input.focus(); fab.querySelector('#riva-fab-icon').textContent = '✕'; }
+            else { fab.querySelector('#riva-fab-icon').textContent = '🦢'; }
+        });
+        closeBtn.addEventListener('click', function() {
+            panel.classList.remove('riva-open');
+            panel.setAttribute('aria-hidden', 'true');
+            fab.querySelector('#riva-fab-icon').textContent = '🦢';
+        });
+
+        // TTS toggle — off by default, user must click to enable
+        ttsToggle.addEventListener('click', function() {
+            ttsEnabled = !ttsEnabled;
+            ttsToggle.classList.toggle('riva-tts-off', !ttsEnabled);
+            ttsToggle.textContent = ttsEnabled ? '🔊' : '🔇';
+            ttsToggle.title = ttsEnabled ? 'Voice on — click to mute' : 'Voice off — click to enable';
+            if (!ttsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+        });
+
+        function safeHtml(s) {
+            if (window.MakauSecurity && typeof MakauSecurity.escapeHtml === 'function')
+                return MakauSecurity.escapeHtml(s).replace(/\n/g, '<br>');
+            // Fallback: no HTML allowed.
+            return String(s || '').replace(/\n/g, '<br>');
+        }
+
+        function addMsg(text, who) {
+            const row = document.createElement('div');
+            row.className = 'riva-msg riva-msg--' + who;
+            const av = document.createElement('span');
+            av.className = 'riva-msg-avatar';
+            av.textContent = who === 'bot' ? '🦢' : '👤';
+            const bubble = document.createElement('div');
+            bubble.className = 'riva-msg-bubble';
+            bubble.innerHTML = safeHtml(text);
+            if (who === 'bot') { row.appendChild(av); row.appendChild(bubble); }
+            else { row.appendChild(bubble); row.appendChild(av); }
+            messages.appendChild(row);
+            messages.scrollTop = messages.scrollHeight;
+            return row;
+        }
+
+        function showTyping() {
+            const row = document.createElement('div');
+            row.className = 'riva-msg riva-msg--bot riva-typing';
+            row.id = 'riva-typing';
+            row.innerHTML = '<span class="riva-msg-avatar">🦢</span><div class="riva-msg-bubble"><span class="riva-dot"></span><span class="riva-dot"></span><span class="riva-dot"></span></div>';
+            messages.appendChild(row);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        function hideTyping() {
+            const t = document.getElementById('riva-typing');
+            if (t) t.remove();
+        }
+
+        function speak(text) {
+            if (!ttsEnabled || !window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const plain = text.replace(/<[^>]+>/g, '').replace(/[🤖👋🍜🌿🏛️🚢🛒🎮🏆💪🏅🌤️✈️🏙️🚀📍😊🏃]/gu, '');
+            const utt = new SpeechSynthesisUtterance(plain);
+            utt.lang = 'en-GB'; utt.rate = 1; utt.pitch = 1.05;
+            // Pick a female voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const female = voices.find(v => /female|woman|zira|samantha|karen|victoria|fiona/i.test(v.name));
+            if (female) utt.voice = female;
+            window.speechSynthesis.speak(utt);
+        }
+
+        async function sendMessage(text) {
+            if (!text.trim()) return;
+            addMsg(text, 'user');
+            input.value = '';
+            sendBtn.disabled = true;
+            showTyping();
+            try {
+                const res = (window.MakauSecurity && MakauSecurity.csrfFetch)
+                    ? await MakauSecurity.csrfFetch('/api/ai/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text })
+                    })
+                    : await fetch('/api/ai/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text })
+                    });
+                const data = await res.json();
+                hideTyping();
+                var reply = (data && data.reply) ? String(data.reply) : 'Hmm, something went wrong.';
+                addMsg(reply, 'bot');
+                speak(reply);
+            } catch(e) {
+                hideTyping();
+                addMsg('Sorry, I\'m having trouble connecting. Try again in a moment, lah!', 'bot');
+            } finally { sendBtn.disabled = false; }
+        }
+
+        sendBtn.addEventListener('click', function() { sendMessage(input.value); });
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); } });
+
+        // Voice input (Speech Recognition)
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRec) {
+            recognition = new SpeechRec();
+            recognition.lang = 'en-MY'; // Malaysian English
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(e) {
+                const transcript = e.results[0][0].transcript;
+                input.value = transcript;
+                isListening = false;
+                micBtn.classList.remove('riva-listening');
+                sendMessage(transcript);
+            };
+            recognition.onerror = function() {
+                isListening = false;
+                micBtn.classList.remove('riva-listening');
+            };
+            recognition.onend = function() {
+                isListening = false;
+                micBtn.classList.remove('riva-listening');
+            };
+
+            micBtn.addEventListener('click', function() {
+                if (isListening) { recognition.stop(); return; }
+                try {
+                    recognition.start();
+                    isListening = true;
+                    micBtn.classList.add('riva-listening');
+                } catch(e) {}
+            });
+        } else {
+            micBtn.title = 'Voice not supported in this browser';
+            micBtn.style.opacity = '0.4';
+            micBtn.style.cursor = 'default';
+        }
+
+        // Load voices for TTS (Chrome needs this)
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.addEventListener('voiceschanged', function() {
+                window.speechSynthesis.getVoices();
+            });
+        }
+    })();
+    </script>
+
+    <!-- ═══ SIGNALR REALTIME ═══ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+    (function(){
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/notifications")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveNotification", function(message, type) {
+            showMakauToast(message, type);
+        });
+
+        connection.on("LeaderboardUpdate", function(userName, newScore) {
+            var row = document.querySelector('[data-user="' + userName + '"]');
+            if (row) {
+                var scoreEl = row.querySelector('.score');
+                if (scoreEl) scoreEl.textContent = newScore + ' pts';
+            }
+        });
+
+        connection.on("BadgeEarned", function(userName, badgeName) {
+            showMakauToast("\ud83c\udfc6 " + userName + " earned '" + badgeName + "'!", "success");
+        });
+
+        connection.start().catch(function(err) {
+            console.log("SignalR:", err.toString());
+        });
+
+        function showMakauToast(message, type) {
+            type = type || 'info';
+            var toast = document.createElement('div');
+            toast.className = 'makau-toast makau-toast--' + type;
+            toast.textContent = String(message || '');
+            var colors = { success: '#10b981', warning: '#f59e0b', info: '#6366f1', error: '#ef4444' };
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;padding:14px 24px;border-radius:12px;color:#fff;font-weight:600;font-size:0.95rem;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.3);animation:makauSlideIn 0.4s ease;background:' + (colors[type] || colors.info) + ';';
+            document.body.appendChild(toast);
+            setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; }, 4000);
+            setTimeout(function(){ toast.remove(); }, 4500);
+        }
+    })();
+    </script>
+    <style>
+    @@keyframes makauSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</body>
+</html>

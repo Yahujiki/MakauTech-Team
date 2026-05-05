@@ -1,0 +1,316 @@
+@model List<MakauTech.Models.Update>
+@{
+    ViewData["Title"] = "Sibu Daily — News & Updates";
+
+    string CategoryColor(string? c) => (c ?? "").ToLower() switch
+    {
+        "politics"       => "#a855f7",
+        "civic"          => "#a855f7",
+        "infrastructure" => "#3b82f6",
+        "aviation"       => "#06b6d4",
+        "festival"       => "#f59e0b",
+        "heritage"       => "#d97706",
+        "culture"        => "#dc2626",
+        "tourism"        => "#10b981",
+        "community"      => "#10b981",
+        "environment"    => "#22c55e",
+        "health"         => "#ec4899",
+        _                => "#64748b",
+    };
+    string ReadingTime(string body) {
+        if (string.IsNullOrWhiteSpace(body)) return "1 min read";
+        var words = body.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Length;
+        var mins = System.Math.Max(1, (int)System.Math.Ceiling(words / 220.0));
+        return $"{mins} min read";
+    }
+    string DomainOf(string? url) {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        try {
+            var u = new System.Uri(url);
+            var h = u.Host.ToLower();
+            return h.StartsWith("www.") ? h.Substring(4) : h;
+        } catch { return ""; }
+    }
+}
+
+@section Styles {
+<style>
+/* ─── Sibu Daily — news feed (scoped) ─────────────────────── */
+.sd { max-width: 1180px; margin: 2rem auto 4rem; padding: 0 1.5rem;
+      color: var(--text, #111827); }
+
+/* Header / masthead */
+.sd-mast {
+    border-bottom: 1px solid rgba(15,23,42,0.08);
+    padding-bottom: 1.5rem; margin-bottom: 2rem;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1.5rem; flex-wrap: wrap;
+}
+[data-theme="dark"] .sd-mast { border-bottom-color: rgba(255,255,255,0.08); }
+.sd-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent, #22c55e);
+    margin-bottom: 0.6rem;
+}
+.sd-eyebrow::before {
+    content: ""; display: inline-block;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239,68,68,0.6);
+    animation: sd-pulse 1.6s ease-in-out infinite;
+}
+@@keyframes sd-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+    50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+.sd-h1 {
+    font-family: var(--mk-font-display, 'Fraunces', serif);
+    font-size: clamp(36px, 5.5vw, 56px); font-weight: 800;
+    color: var(--text, #0f172a); margin: 0 0 0.4rem 0;
+    letter-spacing: -0.025em; line-height: 1.0;
+}
+[data-theme="dark"] .sd-h1 { color: #f8fafc; }
+.sd-sub { color: var(--text-light, #64748b); font-size: 0.98rem; margin: 0; max-width: 60ch; }
+[data-theme="dark"] .sd-sub { color: rgba(226,232,240,0.65); }
+.sd-mast-meta {
+    text-align: right; font-size: 0.78rem; color: var(--text-light, #64748b);
+    line-height: 1.6;
+}
+[data-theme="dark"] .sd-mast-meta { color: rgba(226,232,240,0.55); }
+.sd-mast-meta strong { color: var(--text, #111827); font-weight: 700; }
+[data-theme="dark"] .sd-mast-meta strong { color: #f1f5f9; }
+
+/* Featured (top) card — editorial hero treatment */
+.sd-feed { display: grid; gap: 1rem; }
+.sd-card {
+    background: #fff;
+    border: 1px solid rgba(15,23,42,0.07);
+    border-radius: 16px; overflow: hidden;
+    transition: all 0.22s ease;
+    text-decoration: none; color: inherit;
+    display: block;
+}
+[data-theme="dark"] .sd-card {
+    background: rgba(255,255,255,0.025);
+    border-color: rgba(255,255,255,0.07);
+}
+.sd-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(34,197,94,0.35);
+    box-shadow: 0 14px 36px rgba(15,23,42,0.10);
+}
+[data-theme="dark"] .sd-card:hover {
+    box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+}
+
+.sd-card-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.4rem;
+    padding: 1.25rem;
+}
+.sd-card--lead .sd-card-grid {
+    grid-template-columns: 1.15fr 1fr;
+    padding: 1.5rem;
+}
+@@media (max-width: 720px) {
+    .sd-card-grid, .sd-card--lead .sd-card-grid {
+        grid-template-columns: 1fr; padding: 1rem;
+    }
+}
+
+.sd-thumb {
+    aspect-ratio: 16/10;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg,#ecfdf5,#f0fdf4);
+}
+[data-theme="dark"] .sd-thumb { background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(15,23,42,0.40)); }
+.sd-thumb img { width:100%; height:100%; object-fit: cover; transition: transform 0.5s; }
+.sd-card:hover .sd-thumb img { transform: scale(1.04); }
+.sd-thumb-fallback {
+    position:absolute; inset:0;
+    display:grid; place-items:center;
+    font-size: 56px; opacity: 0.45;
+}
+.sd-card--lead .sd-thumb { aspect-ratio: 16/9; }
+
+.sd-body { display:flex; flex-direction:column; justify-content:center; min-width:0; }
+
+/* Top meta row: category badge + date + reading time */
+.sd-meta-top {
+    display: flex; align-items: center; gap: 0.6rem;
+    flex-wrap: wrap; margin-bottom: 0.65rem;
+}
+.sd-cat {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+.sd-dot { font-size: 0.55rem; opacity: 0.55; color: var(--text-light, #94a3b8); }
+.sd-date { font-size: 0.78rem; font-weight: 600; color: var(--text-light, #64748b); }
+[data-theme="dark"] .sd-date { color: rgba(226,232,240,0.65); }
+.sd-readtime { font-size: 0.78rem; color: var(--text-light, #94a3b8); }
+[data-theme="dark"] .sd-readtime { color: rgba(226,232,240,0.5); }
+
+.sd-title {
+    font-family: var(--mk-font-display, 'Fraunces', serif);
+    font-size: 1.4rem; font-weight: 700;
+    color: var(--text, #0f172a);
+    margin: 0 0 0.55rem 0; line-height: 1.25;
+    letter-spacing: -0.015em;
+}
+[data-theme="dark"] .sd-title { color: #f1f5f9; }
+.sd-card--lead .sd-title { font-size: clamp(22px, 2.2vw, 30px); }
+
+.sd-summary {
+    color: var(--text-light, #475569);
+    font-size: 0.95rem; line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+[data-theme="dark"] .sd-summary { color: rgba(226,232,240,0.78); }
+
+/* Bottom row: source link + read more */
+.sd-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+.sd-source {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--text-light, #64748b);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.04);
+    transition: all 0.18s;
+}
+.sd-source:hover { background: rgba(34,197,94,0.10); color: var(--accent, #22c55e); }
+[data-theme="dark"] .sd-source { background: rgba(255,255,255,0.06); color: rgba(226,232,240,0.75); }
+[data-theme="dark"] .sd-source:hover { background: rgba(34,197,94,0.18); color: #4ade80; }
+.sd-source svg { width: 12px; height: 12px; opacity: 0.7; }
+.sd-source-domain { font-weight: 700; color: inherit; }
+
+.sd-read {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.88rem; font-weight: 700;
+    color: var(--accent, #22c55e); text-decoration: none;
+    transition: gap 0.18s;
+}
+.sd-read:hover { gap: 0.7rem; }
+
+/* Empty state */
+.sd-empty {
+    text-align:center; padding: 4rem 1.5rem;
+    background: rgba(15,23,42,0.03);
+    border-radius: 16px;
+}
+[data-theme="dark"] .sd-empty { background: rgba(255,255,255,0.03); }
+.sd-empty-emoji { font-size: 56px; margin-bottom: 12px; opacity: 0.6; }
+.sd-empty h2 { font-family: var(--mk-font-display, 'Fraunces', serif); margin: 0 0 0.4rem 0; color: var(--text); }
+[data-theme="dark"] .sd-empty h2 { color: #f1f5f9; }
+.sd-empty p { color: var(--text-light, #64748b); margin: 0; }
+[data-theme="dark"] .sd-empty p { color: rgba(226,232,240,0.6); }
+</style>
+}
+
+<div class="sd">
+
+    <!-- ── Masthead ─────────────────────────────────────── -->
+    <header class="sd-mast">
+        <div>
+            <span class="sd-eyebrow">SIBU DAILY · LIVE NEWS</span>
+            <h1 class="sd-h1">News from Sibu &amp; Sarawak</h1>
+            <p class="sd-sub">Local politics, festivals, infrastructure, food and culture — everything happening in Borneo's Swan City.</p>
+        </div>
+        <div class="sd-mast-meta">
+            <strong>@DateTime.Now.ToString("dddd, dd MMMM yyyy")</strong><br/>
+            @Model.Count(u => u.IsPublished) live stories<br/>
+            <span style="opacity:0.7;">Sources cited per article</span>
+        </div>
+    </header>
+
+    @if (!Model.Any())
+    {
+        <div class="sd-empty">
+            <div class="sd-empty-emoji">📭</div>
+            <h2>The newsroom is quiet</h2>
+            <p>No stories filed yet. Check back soon — Sibu rarely stays still.</p>
+        </div>
+    }
+    else
+    {
+        <div class="sd-feed">
+            @{ int idx = 0; }
+            @foreach (var u in Model)
+            {
+                bool isLead = idx == 0;
+                idx++;
+                var color = CategoryColor(u.Category);
+                var domain = DomainOf(u.SourceUrl);
+                <a class="sd-card @(isLead ? "sd-card--lead" : "")"
+                   href="@Url.Action("UpdateDetail","Home",new{id=u.Id})"
+                   aria-label="Read @u.Title">
+                    <div class="sd-card-grid">
+                        <div class="sd-thumb">
+                            @if (!string.IsNullOrEmpty(u.ImageUrl))
+                            {
+                                <img src="@u.ImageUrl" alt="@u.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="sd-thumb-fallback" aria-hidden="true">📰</div>
+                            }
+                        </div>
+                        <div class="sd-body">
+                            <div class="sd-meta-top">
+                                @if (!string.IsNullOrEmpty(u.Category))
+                                {
+                                    <span class="sd-cat" style="background:@(color)1F; color:@color;">
+                                        @u.Category.ToUpper()
+                                    </span>
+                                }
+                                <span class="sd-date">@u.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                                <span class="sd-dot">·</span>
+                                <span class="sd-readtime">@ReadingTime(u.Body)</span>
+                            </div>
+                            <h2 class="sd-title">@u.Title</h2>
+                            @if (!string.IsNullOrEmpty(u.Summary))
+                            {
+                                <p class="sd-summary">@u.Summary</p>
+                            }
+                            <div class="sd-foot">
+                                @if (!string.IsNullOrEmpty(u.SourceUrl))
+                                {
+                                    <a class="sd-source"
+                                       href="@u.SourceUrl"
+                                       target="_blank" rel="noopener noreferrer"
+                                       onclick="event.stopPropagation();"
+                                       title="Open @u.AuthorName in new tab">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                            <polyline points="15 3 21 3 21 9"/>
+                                            <line x1="10" y1="14" x2="21" y2="3"/>
+                                        </svg>
+                                        Source: <span class="sd-source-domain">@u.AuthorName</span>
+                                        @if (!string.IsNullOrEmpty(domain))
+                                        {
+                                            <span style="opacity:0.55;">· @domain</span>
+                                        }
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="sd-source" style="cursor:default;">By @u.AuthorName</span>
+                                }
+                                <span class="sd-read">Read story →</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,179 @@
+/* ============================================================
+   Splash / boot screen — gaming-style intro
+   Shows once per browser session before first paint of the app.
+   ============================================================ */
+
+#mk-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background:
+        radial-gradient(ellipse at 30% 30%, rgba(16,185,129,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 70%, rgba(34,197,94,0.10) 0%, transparent 55%),
+        linear-gradient(180deg, #030d06 0%, #0a1f12 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    color: #e6f9ed;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+#mk-splash.is-leaving { animation: mk-splash-out 0.8s ease forwards; }
+
+@keyframes mk-splash-out {
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* scan-line ambience */
+#mk-splash::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.02) 0,
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+    pointer-events: none;
+}
+#mk-splash::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 0, transparent 65%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+}
+
+.mk-splash-logo {
+    position: relative;
+    z-index: 2;
+    width: 140px;
+    height: 140px;
+    border-radius: 30%;
+    background: radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%);
+    display: grid;
+    place-items: center;
+    animation: mk-splash-pulse 2.4s ease-in-out infinite;
+}
+.mk-splash-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(16,185,129,0.5));
+}
+@keyframes mk-splash-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+}
+
+.mk-splash-brand {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+.mk-splash-name {
+    font-family: 'Fraunces', 'Plus Jakarta Sans', serif;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+}
+.mk-splash-name .makau { color: #22c55e; }
+.mk-splash-name .tech  { color: #f97316; }
+.mk-splash-tag {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 249, 237, 0.6);
+}
+
+/* Loading bar */
+.mk-splash-bar-wrap {
+    position: relative;
+    z-index: 2;
+    width: min(420px, 80vw);
+    text-align: center;
+}
+.mk-splash-bar-track {
+    position: relative;
+    width: 100%;
+    height: 18px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(34,197,94,0.32);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.4),
+                0 0 16px rgba(34,197,94,0.12);
+    overflow: hidden;
+    padding: 2px;
+    display: flex;
+    gap: 2px;
+}
+.mk-splash-bar-fill {
+    position: absolute;
+    inset: 2px;
+    width: 0;
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 40%, #4ade80 100%);
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(34,197,94,0.6),
+                0 0 24px rgba(34,197,94,0.3);
+    transition: width 0.18s linear;
+    /* segmented look */
+    background-image:
+        linear-gradient(90deg,
+            transparent 0,
+            transparent calc(100% / 22 - 2px),
+            rgba(0,0,0,0.45) calc(100% / 22 - 2px),
+            rgba(0,0,0,0.45) calc(100% / 22)
+        ),
+        linear-gradient(90deg, #16a34a, #4ade80);
+    background-size: calc(100% / 22 * 22) 100%;
+}
+.mk-splash-bar-glow {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 32px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    pointer-events: none;
+    animation: mk-splash-shine 1.6s ease-in-out infinite;
+}
+@keyframes mk-splash-shine {
+    0% { left: -10%; }
+    100% { left: 110%; }
+}
+
+.mk-splash-meta {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: rgba(230, 249, 237, 0.7);
+}
+.mk-splash-meta .label { letter-spacing: 0.1em; text-transform: uppercase; }
+.mk-splash-meta .pct {
+    font-weight: 800;
+    color: #4ade80;
+    text-shadow: 0 0 8px rgba(34,197,94,0.5);
+}
+.mk-splash-tip {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: rgba(230, 249, 237, 0.45);
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 480px) {
+    .mk-splash-logo { width: 100px; height: 100px; }
+    .mk-splash-name { font-size: 28px; }
+    .mk-splash-bar-track { height: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #mk-splash, #mk-splash * { animation: none !important; transition: none !important; }
+}

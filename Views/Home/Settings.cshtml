@@ -1,0 +1,614 @@
+@model MakauTech.Models.User
+@{
+    ViewData["Title"] = "Settings";
+    var avatarSrc = ViewBag.AvatarUrl as string;
+    var userName = Model?.Name ?? "Player";
+    var userPoints = Model?.Points ?? 0;
+    var userBadges = Model?.Badges ?? new List<string>();
+    var userPlaces = Model?.VisitedPlaceIds?.Count ?? 0;
+    var memberSince = Model?.CreatedAt.ToLocalTime().ToString("MMMM yyyy") ?? "";
+}
+
+@section Styles {
+<style>
+    .st-page { max-width: 1080px; margin: 32px auto; padding: 0 20px 64px; }
+
+    .st-head { margin-bottom: 28px; }
+    .st-head h1 {
+        font-family: var(--mk-font-display);
+        font-size: clamp(28px, 4vw, 38px);
+        font-weight: 700;
+        color: var(--mk-night-900);
+        letter-spacing: -0.02em;
+        margin: 0 0 6px;
+    }
+    .st-head p { color: var(--mk-slate-600); margin: 0; font-size: 14.5px; }
+    [data-theme="dark"] .st-head h1 { color: #f1f5f9; }
+
+    .st-flash {
+        padding: 12px 16px;
+        border-radius: var(--mk-r);
+        margin-bottom: 18px;
+        font-size: 14px;
+        border-left: 4px solid;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .st-flash-ok  { background: #f0fdf4; color: #14532d; border-color: var(--mk-emerald-500); }
+    .st-flash-err { background: #fef2f2; color: #991b1b; border-color: #ef4444; }
+
+    /* Two-column layout */
+    .st-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 32px;
+        align-items: start;
+    }
+    @@media (max-width: 880px) { .st-grid { grid-template-columns: 1fr; } }
+
+    /* Identity card (left) */
+    .st-identity {
+        background: #fff;
+        border: 1px solid rgba(15,23,42,0.06);
+        border-radius: var(--mk-r-lg);
+        padding: 28px 22px;
+        text-align: center;
+        box-shadow: var(--mk-shadow-sm);
+        position: sticky;
+        top: 80px;
+    }
+    @@media (max-width: 880px) { .st-identity { position: static; } }
+
+    .st-avatar {
+        width: 96px; height: 96px;
+        border-radius: 50%;
+        margin: 0 auto 14px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        display: grid;
+        place-items: center;
+        font-size: 40px;
+        color: var(--mk-emerald-700);
+        border: 3px solid #fff;
+        box-shadow: 0 8px 24px rgba(16,185,129,0.18);
+    }
+    .st-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .st-id-name {
+        font-family: var(--mk-font-display);
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--mk-night-900);
+        margin: 0 0 2px;
+        letter-spacing: -0.01em;
+        word-break: break-word;
+    }
+    .st-id-email {
+        color: var(--mk-slate-600);
+        font-size: 13px;
+        margin: 0 0 16px;
+        word-break: break-all;
+    }
+
+    .st-id-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 18px 0 0;
+        padding: 16px 0 0;
+        border-top: 1px solid rgba(15,23,42,0.08);
+    }
+    .st-id-stat-num {
+        font-family: var(--mk-font-display);
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--mk-emerald-700);
+        line-height: 1;
+    }
+    .st-id-stat-lbl {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--mk-slate-500, #64748b);
+        margin-top: 4px;
+        font-weight: 600;
+    }
+    .st-id-since {
+        font-size: 12px;
+        color: var(--mk-slate-500, #64748b);
+        margin-top: 14px;
+    }
+
+    [data-theme="dark"] .st-identity { background: var(--mk-night-800); border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .st-id-name { color: #f1f5f9; }
+
+    /* Right column — settings cards */
+    .st-stack { display: flex; flex-direction: column; gap: 18px; }
+
+    .st-card {
+        background: #fff;
+        border: 1px solid rgba(15,23,42,0.06);
+        border-radius: var(--mk-r-lg);
+        padding: 24px 26px;
+        box-shadow: var(--mk-shadow-sm);
+    }
+    .st-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
+        margin-bottom: 4px;
+    }
+    .st-card h2 {
+        font-family: var(--mk-font-display);
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--mk-night-900);
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+    .st-card-sub {
+        color: var(--mk-slate-600);
+        font-size: 13.5px;
+        margin: 0 0 18px;
+    }
+    [data-theme="dark"] .st-card { background: var(--mk-night-800); border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .st-card h2 { color: #f1f5f9; }
+    [data-theme="dark"] .st-card-sub { color: #94a3b8; }
+
+    /* Form */
+    .st-row { display: grid; gap: 14px; }
+    .st-row-2 { grid-template-columns: 1fr 1fr; }
+    @@media (max-width: 560px) { .st-row-2 { grid-template-columns: 1fr; } }
+
+    .st-field { display: flex; flex-direction: column; gap: 6px; }
+    .st-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--mk-slate-700);
+        letter-spacing: 0.01em;
+    }
+    .st-input {
+        width: 100%;
+        padding: 11px 14px;
+        font-size: 14.5px;
+        font-family: inherit;
+        background: #fff;
+        color: var(--mk-night-900);
+        border: 1.5px solid rgba(15,23,42,0.12);
+        border-radius: var(--mk-r-sm);
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .st-input:focus {
+        outline: none;
+        border-color: var(--mk-emerald-500);
+        box-shadow: 0 0 0 3px rgba(16,185,129,0.14);
+    }
+    .st-help { font-size: 12px; color: var(--mk-slate-500, #64748b); }
+    [data-theme="dark"] .st-label { color: #cbd5e1; }
+    [data-theme="dark"] .st-input { background: rgba(255,255,255,0.04); color: #f1f5f9; border-color: rgba(255,255,255,0.12); }
+
+    /* Avatar upload row */
+    .st-avatar-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 16px;
+        border: 1px dashed rgba(15,23,42,0.16);
+        border-radius: var(--mk-r);
+        background: rgba(15,23,42,0.02);
+    }
+    .st-avatar-row .preview {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        display: grid;
+        place-items: center;
+        color: var(--mk-emerald-700);
+        font-size: 26px;
+    }
+    .st-avatar-row .preview img { width: 100%; height: 100%; object-fit: cover; }
+    .st-avatar-row .actions { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    [data-theme="dark"] .st-avatar-row { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.10); }
+
+    /* Button styles */
+    .st-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 18px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: var(--mk-r-pill);
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.18s, border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+    }
+    .st-btn:hover { transform: translateY(-1px); }
+    .st-btn-primary {
+        background: var(--mk-grad-accent);
+        color: #fff;
+        box-shadow: 0 6px 14px rgba(16,185,129,0.28);
+    }
+    .st-btn-primary:hover { box-shadow: 0 10px 24px rgba(16,185,129,0.4); }
+    .st-btn-ghost {
+        background: transparent;
+        color: var(--mk-slate-700);
+        border-color: rgba(15,23,42,0.16);
+    }
+    .st-btn-ghost:hover { background: rgba(15,23,42,0.04); border-color: var(--mk-slate-400); }
+    .st-btn-danger-link {
+        background: transparent;
+        color: #b91c1c;
+        font-weight: 600;
+        font-size: 13.5px;
+        text-decoration: none;
+        padding: 6px 0;
+    }
+    .st-btn-danger-link:hover { text-decoration: underline; }
+    .st-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    [data-theme="dark"] .st-btn-ghost { color: #cbd5e1; border-color: rgba(255,255,255,0.16); }
+    [data-theme="dark"] .st-btn-ghost:hover { background: rgba(255,255,255,0.04); }
+
+    /* File input — visually hide native; pair with label */
+    .st-file-hidden {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0); border: 0;
+    }
+
+    /* Toggle switch */
+    .st-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(15,23,42,0.06);
+    }
+    .st-toggle:last-child { border-bottom: none; }
+    .st-toggle-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .st-toggle-name { font-weight: 600; color: var(--mk-night-900); font-size: 14.5px; }
+    .st-toggle-desc { color: var(--mk-slate-600); font-size: 13px; }
+    [data-theme="dark"] .st-toggle { border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .st-toggle-name { color: #f1f5f9; }
+    [data-theme="dark"] .st-toggle-desc { color: #94a3b8; }
+
+    .st-switch {
+        position: relative;
+        width: 44px;
+        height: 26px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+    .st-switch input { opacity: 0; width: 0; height: 0; }
+    .st-switch-track {
+        position: absolute;
+        inset: 0;
+        background: rgba(15,23,42,0.16);
+        border-radius: 999px;
+        transition: background 0.2s;
+    }
+    .st-switch-thumb {
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 20px; height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.22s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+    }
+    .st-switch input:checked ~ .st-switch-track { background: var(--mk-emerald-500); }
+    .st-switch input:checked ~ .st-switch-track .st-switch-thumb { transform: translateX(18px); }
+    .st-switch input:focus-visible ~ .st-switch-track { box-shadow: 0 0 0 3px rgba(16,185,129,0.28); }
+
+    /* Link list */
+    .st-links { list-style: none; padding: 0; margin: 0; }
+    .st-links li { border-bottom: 1px solid rgba(15,23,42,0.06); }
+    .st-links li:last-child { border-bottom: none; }
+    .st-links a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        color: var(--mk-night-900);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .st-links a:hover { color: var(--mk-emerald-700); }
+    .st-links .arrow { color: var(--mk-slate-400); font-size: 18px; }
+    [data-theme="dark"] .st-links li { border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .st-links a { color: #f1f5f9; }
+
+    /* Footer note */
+    .st-footnote {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--mk-slate-500, #64748b);
+    }
+</style>
+}
+
+<div class="st-page">
+
+    <header class="st-head">
+        <h1>Settings</h1>
+        <p>Manage your profile, preferences and account.</p>
+    </header>
+
+    @if (TempData["SettingsSuccess"] != null)
+    {
+        <div class="st-flash st-flash-ok" role="status">
+            <span aria-hidden="true">✓</span><span>@TempData["SettingsSuccess"]</span>
+        </div>
+    }
+    @if (TempData["SettingsError"] != null)
+    {
+        <div class="st-flash st-flash-err" role="alert">
+            <span aria-hidden="true">!</span><span>@TempData["SettingsError"]</span>
+        </div>
+    }
+
+    <div class="st-grid">
+
+        @* ───── LEFT: identity summary ───── *@
+        <aside class="st-identity">
+            <div class="st-avatar">
+                @if (!string.IsNullOrEmpty(avatarSrc))
+                {
+                    <img src="@Url.Content(avatarSrc)" alt="Your avatar" />
+                }
+                else
+                {
+                    <span aria-hidden="true">@(string.IsNullOrEmpty(userName) ? "?" : userName.Substring(0, 1).ToUpper())</span>
+                }
+            </div>
+            <div class="st-id-name">@userName</div>
+            <div class="st-id-email">@Model?.Email</div>
+            <div class="st-id-stats">
+                <div>
+                    <div class="st-id-stat-num">@userPoints</div>
+                    <div class="st-id-stat-lbl">Points</div>
+                </div>
+                <div>
+                    <div class="st-id-stat-num">@userPlaces</div>
+                    <div class="st-id-stat-lbl">Places</div>
+                </div>
+                <div>
+                    <div class="st-id-stat-num">@userBadges.Count</div>
+                    <div class="st-id-stat-lbl">Badges</div>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(memberSince))
+            {
+                <div class="st-id-since">Member since @memberSince</div>
+            }
+        </aside>
+
+        @* ───── RIGHT: cards ───── *@
+        <div class="st-stack">
+
+            @* Profile *@
+            <section class="st-card" aria-labelledby="st-profile-h">
+                <div class="st-card-head">
+                    <h2 id="st-profile-h">Profile</h2>
+                </div>
+                <p class="st-card-sub">Your name and email shown on reviews and the leaderboard.</p>
+
+                <form method="post" asp-action="Settings">
+                    <div class="st-row st-row-2">
+                        <div class="st-field">
+                            <label for="st-name" class="st-label">Display name</label>
+                            <input id="st-name" type="text" name="name" value="@Model?.Name" class="st-input" required maxlength="80" />
+                        </div>
+                        <div class="st-field">
+                            <label for="st-email" class="st-label">Email address</label>
+                            <input id="st-email" type="email" name="email" value="@Model?.Email" class="st-input" required autocomplete="email" />
+                        </div>
+                    </div>
+
+                    <div class="st-actions">
+                        <button type="submit" class="st-btn st-btn-primary">Save changes</button>
+                    </div>
+                </form>
+
+                <hr style="border:none; border-top:1px solid rgba(15,23,42,0.06); margin:22px 0 18px;" />
+
+                <h3 style="font-family:var(--mk-font-display); font-size:14px; font-weight:700; color:var(--mk-night-900); margin:0 0 4px;">Profile photo</h3>
+                <p class="st-card-sub" style="margin-bottom:12px;">JPG, PNG, WebP or GIF · up to 2 MB.</p>
+                <form asp-action="UploadAvatar" method="post" enctype="multipart/form-data" class="st-avatar-row">
+                    <div class="preview">
+                        @if (!string.IsNullOrEmpty(avatarSrc))
+                        {
+                            <img src="@Url.Content(avatarSrc)" alt="" />
+                        }
+                        else
+                        {
+                            <span aria-hidden="true">@(string.IsNullOrEmpty(userName) ? "?" : userName.Substring(0, 1).ToUpper())</span>
+                        }
+                    </div>
+                    <div class="actions">
+                        <input id="st-avatar-input" type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="st-file-hidden" required />
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <label for="st-avatar-input" class="st-btn st-btn-ghost" style="cursor:pointer;">Choose photo</label>
+                            <button type="submit" class="st-btn st-btn-primary">Upload</button>
+                        </div>
+                        <span class="st-help" id="st-avatar-name">No file selected</span>
+                    </div>
+                </form>
+            </section>
+
+            @* Preferences *@
+            <section class="st-card" aria-labelledby="st-pref-h">
+                <div class="st-card-head">
+                    <h2 id="st-pref-h">Preferences</h2>
+                </div>
+                <p class="st-card-sub">Tune the look and feel of MakauTech.</p>
+
+                <div class="st-toggle">
+                    <div class="st-toggle-text">
+                        <span class="st-toggle-name">Dark mode</span>
+                        <span class="st-toggle-desc">Use a darker theme that's easier on the eyes at night.</span>
+                    </div>
+                    <label class="st-switch">
+                        <input type="checkbox" id="stDarkCheck" />
+                        <span class="st-switch-track"><span class="st-switch-thumb"></span></span>
+                    </label>
+                </div>
+
+                <div class="st-toggle">
+                    <div class="st-toggle-text">
+                        <span class="st-toggle-name">Game sounds</span>
+                        <span class="st-toggle-desc">Play short sound effects in the mini-games.</span>
+                    </div>
+                    <label class="st-switch">
+                        <input type="checkbox" id="stSoundCheck" checked />
+                        <span class="st-switch-track"><span class="st-switch-thumb"></span></span>
+                    </label>
+                </div>
+
+                <div class="st-toggle">
+                    <div class="st-toggle-text">
+                        <span class="st-toggle-name">Reduce motion</span>
+                        <span class="st-toggle-desc">Disable scrolling backgrounds and decorative animations.</span>
+                    </div>
+                    <label class="st-switch">
+                        <input type="checkbox" id="stMotionCheck" />
+                        <span class="st-switch-track"><span class="st-switch-thumb"></span></span>
+                    </label>
+                </div>
+            </section>
+
+            @* Privacy & Security *@
+            <section class="st-card" aria-labelledby="st-sec-h">
+                <div class="st-card-head">
+                    <h2 id="st-sec-h">Privacy &amp; security</h2>
+                </div>
+                <p class="st-card-sub">Account access and data controls.</p>
+
+                <ul class="st-links">
+                    <li>
+                        <a href="@Url.Action("Profile","Home")">
+                            <span>View public profile</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Logout","Home")">
+                            <span>Sign out of this device</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            @* Help *@
+            <section class="st-card" aria-labelledby="st-help-h">
+                <div class="st-card-head">
+                    <h2 id="st-help-h">Help &amp; legal</h2>
+                </div>
+
+                <ul class="st-links">
+                    <li>
+                        <a asp-action="About" asp-controller="Home">
+                            <span>About MakauTech</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-action="HowItWorks" asp-controller="Home">
+                            <span>How it works</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Feedback" asp-action="Index">
+                            <span>Send feedback</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-action="Terms" asp-controller="Home">
+                            <span>Terms &amp; conditions</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-action="Privacy" asp-controller="Home">
+                            <span>Privacy policy</span>
+                            <span class="arrow" aria-hidden="true">›</span>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            <p class="st-footnote">MakauTech · 2026 · University Technology Sarawak</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var html = document.documentElement;
+
+    // Dark mode
+    var dark = document.getElementById('stDarkCheck');
+    if (dark) {
+        dark.checked = localStorage.getItem('makautech-theme') === 'dark';
+        dark.addEventListener('change', function () {
+            if (this.checked) {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('makautech-theme', 'dark');
+            } else {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('makautech-theme', 'light');
+            }
+        });
+    }
+
+    // Sound
+    var sound = document.getElementById('stSoundCheck');
+    if (sound) {
+        sound.checked = localStorage.getItem('makautech-sound') !== 'off';
+        sound.addEventListener('change', function () {
+            localStorage.setItem('makautech-sound', this.checked ? 'on' : 'off');
+            if (typeof MakauSound !== 'undefined') MakauSound.enabled = this.checked;
+        });
+    }
+
+    // Reduce motion (local override; respects OS pref by default if user hasn't set)
+    var motion = document.getElementById('stMotionCheck');
+    if (motion) {
+        motion.checked = localStorage.getItem('makautech-reduce-motion') === '1';
+        function applyMotion(reduce) {
+            if (reduce) html.setAttribute('data-reduce-motion', '1');
+            else html.removeAttribute('data-reduce-motion');
+        }
+        applyMotion(motion.checked);
+        motion.addEventListener('change', function () {
+            localStorage.setItem('makautech-reduce-motion', this.checked ? '1' : '0');
+            applyMotion(this.checked);
+        });
+    }
+
+    // Avatar filename echo
+    var fileInput = document.getElementById('st-avatar-input');
+    var fileLabel = document.getElementById('st-avatar-name');
+    if (fileInput && fileLabel) {
+        fileInput.addEventListener('change', function () {
+            fileLabel.textContent = this.files && this.files.length
+                ? this.files[0].name + ' selected'
+                : 'No file selected';
+        });
+    }
+})();
+</script>
+}

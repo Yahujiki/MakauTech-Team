@@ -1,0 +1,58 @@
+@model MakauTech.Models.Update
+@{
+    ViewData["Title"] = "New Update";
+    Layout = "_AdminLayout";
+}
+
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+    <a asp-action="Updates" style="color:rgba(255,255,255,0.6); text-decoration:none; font-size:13px;">← Back to updates</a>
+</div>
+
+<h1 class="admin-section-title" style="font-size:26px; margin:0 0 6px;">📢 Publish a new update</h1>
+<p style="color:rgba(255,255,255,0.6); margin:0 0 24px; font-size:14px;">Post a daily news/announcement visible to all site visitors.</p>
+
+@if (TempData["AdminError"] != null) {
+    <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.32); color:#fca5a5; padding:12px 18px; border-radius:10px; margin-bottom:18px;">⚠️ @TempData["AdminError"]</div>
+}
+
+<form method="post" asp-action="CreateUpdate" enctype="multipart/form-data" style="max-width:760px;">
+    @Html.AntiForgeryToken()
+
+    <div style="margin-bottom:16px;">
+        <label for="updTitle" style="display:block; color:rgba(255,255,255,0.85); font-weight:600; font-size:13px; margin-bottom:6px;">Title <span style="color:#fca5a5;">*</span></label>
+        <input id="updTitle" type="text" name="Title" class="admin-input" required maxlength="300"
+               style="width:100%; padding:11px 14px; font-size:15px;"
+               placeholder="e.g. New place added: Sungai Merah Heritage Walk" />
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <label for="updSummary" style="display:block; color:rgba(255,255,255,0.85); font-weight:600; font-size:13px; margin-bottom:6px;">Summary (1-2 sentences)</label>
+        <input id="updSummary" type="text" name="Summary" class="admin-input" maxlength="500"
+               style="width:100%; padding:11px 14px; font-size:14px;"
+               placeholder="One-liner that appears on the feed list" />
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <label for="updBody" style="display:block; color:rgba(255,255,255,0.85); font-weight:600; font-size:13px; margin-bottom:6px;">Body <span style="color:#fca5a5;">*</span></label>
+        <textarea id="updBody" name="Body" required rows="10" class="admin-textarea"
+                  style="width:100%; padding:14px; font-size:14px; line-height:1.6; font-family:inherit; resize:vertical;"
+                  placeholder="Full content of the update. Line breaks preserved.&#10;&#10;Tip: Sibu's Tua Pek Kong temple now has English audio guide.&#10;Or: We added 3 new places this week — Lau King Howe, Heritage Centre, Sungai Merah."></textarea>
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <label for="updImage" style="display:block; color:rgba(255,255,255,0.85); font-weight:600; font-size:13px; margin-bottom:6px;">Cover image (optional, max 4 MB)</label>
+        <input id="updImage" type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif"
+               class="admin-input" style="width:100%; padding:9px; font-size:13px;" />
+    </div>
+
+    <div style="margin-bottom:24px; display:flex; align-items:center; gap:8px;">
+        <input id="updPublish" type="checkbox" name="IsPublished" value="true" checked style="width:18px; height:18px; accent-color:#10b981;" />
+        <label for="updPublish" style="color:rgba(255,255,255,0.85); font-size:14px; font-weight:600; cursor:pointer;">Publish immediately (visible to all visitors)</label>
+    </div>
+    <input type="hidden" name="IsPublished" value="false" />
+
+    <div style="display:flex; gap:10px;">
+        <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.75rem 1.6rem;">Publish update</button>
+        <a asp-action="Updates" class="admin-btn" style="padding:0.75rem 1.6rem; background:rgba(255,255,255,0.08); color:#e2e8f0; text-decoration:none;">Cancel</a>
+    </div>
+</form>

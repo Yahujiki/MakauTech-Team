@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Thank You!";
+    var gotBonus = TempData["FeedbackBonus"]?.ToString() == "true";
+    var subjectLine = TempData["FeedbackSubject"]?.ToString() ?? "Feedback";
+}
+
+<div class="fb-thanks-page">
+    <div class="fb-thanks-card">
+        <div class="fb-thanks-confetti" id="fbConfetti"></div>
+        <div class="fb-thanks-emoji" id="fbThanksEmoji">✓</div>
+        <h1 class="fb-thanks-title">Thank you</h1>
+        <p class="fb-thanks-msg">We received your <strong>@subjectLine</strong> message and will review it soon.</p>
+        @if (gotBonus)
+        {
+            <div class="fb-thanks-bonus">
+                <span class="fb-bonus-icon">🪙</span>
+                <span>+2 pts added to your account!</span>
+            </div>
+        }
+        <div class="fb-thanks-actions">
+            <a asp-controller="Home" asp-action="Index" class="btn-primary">🗺️ Keep Exploring</a>
+            <a asp-controller="Home" asp-action="Profile" class="btn-secondary" style="color:var(--primary);border-color:rgba(27,58,45,0.3)">👤 Profile</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    // Confetti burst
+    const container = document.getElementById('fbConfetti');
+    const emojis = ['🎉','⭐','🍜','🏆','❤️','🎊','✨','🪙'];
+    for (let i = 0; i < 30; i++) {
+        const el = document.createElement('span');
+        el.className = 'fb-confetti-piece';
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.left = (Math.random() * 100) + '%';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+        el.style.fontSize = (0.9 + Math.random() * 0.8) + 'rem';
+        container.appendChild(el);
+    }
+    // Bounce emoji
+    const emoji = document.getElementById('fbThanksEmoji');
+    emoji.style.animation = 'fbBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both';
+})();
+</script>
+}

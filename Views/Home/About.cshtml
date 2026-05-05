@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "About";
+    var achievements = ViewBag.Achievements as List<MakauTech.Models.Achievement> ?? new List<MakauTech.Models.Achievement>();
+}
+
+<div class="abt-page">
+
+    <!-- Hero -->
+    <div class="abt-hero">
+        <div class="abt-hero-orb abt-hero-orb-1"></div>
+        <div class="abt-hero-orb abt-hero-orb-2"></div>
+        <span class="abt-hero-kicker">🦢 About MakauTech</span>
+        <h1>Discover <span>Sibu</span>, Your Way</h1>
+        <p>A gamified tourism platform built to help you explore every corner of Sibu, Sarawak — earn points, unlock badges, and climb the leaderboard.</p>
+    </div>
+
+    <div class="abt-body">
+
+        <!-- What is MakauTech -->
+        <div class="abt-overview">
+            <h2 class="abt-section-title">What is MakauTech?</h2>
+            <p>MakauTech is a gamified tourism web app designed specifically for Sibu, Sarawak. We turn sightseeing into an adventure — visit real places, play mini games, leave reviews, and earn points along the way. Whether you're a local or a visitor, MakauTech helps you discover the hidden gems of Sibu's rich Foochow heritage, vibrant markets, and stunning natural landscapes.</p>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="abt-grid">
+            <div class="abt-card">
+                <div class="abt-card-icon abt-card-icon--blue">🎯</div>
+                <h3>Our Mission</h3>
+                <p>Encourage locals and tourists to discover Sibu's hidden gems — from the mighty Rajang River to centuries-old Foochow temples — through a fun, points-based gamification system that rewards real exploration.</p>
+            </div>
+            <div class="abt-card">
+                <div class="abt-card-icon abt-card-icon--purple">🎮</div>
+                <h3>How It Works</h3>
+                <p>Visit places (+5 pts), write reviews (+10 pts), and play 4 tourism mini games (up to 50 pts each). Climb the ranks from Newbie to Bronze, Silver, and Gold as you explore more of Sibu.</p>
+            </div>
+            <div class="abt-card">
+                <div class="abt-card-icon abt-card-icon--amber">🏆</div>
+                <h3>Achievements</h3>
+                <p>Unlock 10 unique badges as you explore — from First Step (visit 1 place) all the way to Champion (5,000 pts). Each badge is a milestone on your journey through Sibu.</p>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="abt-stats">
+            <div class="abt-stat">
+                <span class="abt-stat-val">4</span>
+                <span class="abt-stat-lbl">Mini Games</span>
+            </div>
+            <div class="abt-stat">
+                <span class="abt-stat-val">16</span>
+                <span class="abt-stat-lbl">Places to Explore</span>
+            </div>
+            <div class="abt-stat">
+                <span class="abt-stat-val">10</span>
+                <span class="abt-stat-lbl">Badges to Earn</span>
+            </div>
+            <div class="abt-stat">
+                <span class="abt-stat-val">4</span>
+                <span class="abt-stat-lbl">Rank Levels</span>
+            </div>
+        </div>
+
+        <!-- Achievement Tiers -->
+        <div class="abt-rewards">
+            <h2 class="abt-section-title">Achievement Tiers</h2>
+            <div class="abt-tier-grid">
+                <div class="abt-tier abt-tier--explore">
+                    <h4>🗺️ Exploration Badges</h4>
+                    <p>Earned by visiting real places in Sibu</p>
+                    <div class="abt-tier-items">
+                        <span class="abt-tier-item">🌟 First Step — 1 place</span>
+                        <span class="abt-tier-item">🍽️ Food Hunter — 5 places</span>
+                        <span class="abt-tier-item">🗺️ Explorer — 10 places</span>
+                        <span class="abt-tier-item">🏡 True Native — 20 places</span>
+                    </div>
+                </div>
+                <div class="abt-tier abt-tier--points">
+                    <h4>⚡ Points Badges</h4>
+                    <p>Earned by accumulating points from all activities</p>
+                    <div class="abt-tier-items">
+                        <span class="abt-tier-item">✍️ Active Reviewer — 200 pts</span>
+                        <span class="abt-tier-item">🏆 Sibu Expert — 500 pts</span>
+                        <span class="abt-tier-item">⚔️ Adventurer — 1,000 pts</span>
+                        <span class="abt-tier-item">🎮 Game Master — 2,000 pts</span>
+                        <span class="abt-tier-item">⚡ Legend — 3,500 pts</span>
+                        <span class="abt-tier-item">👑 Champion — 5,000 pts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="abt-footer">
+            <div class="abt-footer-brand">MakauTech</div>
+            <div class="abt-footer-year">2026</div>
+            <div class="abt-footer-uni">University Technology Sarawak</div>
+        </div>
+
+    </div>
+</div>

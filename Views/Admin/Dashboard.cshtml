@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    var topPlaces = ViewBag.TopPlaces as List<MakauTech.Models.Place> ?? new List<MakauTech.Models.Place>();
+    var recentReviews = ViewBag.RecentReviews as List<MakauTech.Models.Review> ?? new List<MakauTech.Models.Review>();
+    var topUsers = ViewBag.TopUsers as List<MakauTech.Models.User> ?? new List<MakauTech.Models.User>();
+}
+
+<h2>📊 Dashboard</h2>
+
+<div class="admin-stats">
+    <div class="admin-stat-card">
+        <div class="admin-stat-icon">📍</div>
+        <div class="admin-stat-value">@ViewBag.TotalPlaces</div>
+        <div class="admin-stat-label">Places</div>
+    </div>
+    <div class="admin-stat-card admin-stat-card--blue">
+        <div class="admin-stat-icon">👥</div>
+        <div class="admin-stat-value">@ViewBag.TotalUsers</div>
+        <div class="admin-stat-label">Users</div>
+    </div>
+    <div class="admin-stat-card admin-stat-card--orange">
+        <div class="admin-stat-icon">💬</div>
+        <div class="admin-stat-value">@ViewBag.TotalReviews</div>
+        <div class="admin-stat-label">Reviews</div>
+    </div>
+    <div class="admin-stat-card admin-stat-card--purple">
+        <div class="admin-stat-icon">❤️</div>
+        <div class="admin-stat-value">@ViewBag.TotalLikes</div>
+        <div class="admin-stat-label">Likes</div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="admin-stat-icon">🏷️</div>
+        <div class="admin-stat-value">@ViewBag.TotalCategories</div>
+        <div class="admin-stat-label">Categories</div>
+    </div>
+    <div class="admin-stat-card admin-stat-card--orange">
+        <div class="admin-stat-icon">🏅</div>
+        <div class="admin-stat-value">@ViewBag.TotalAchievements</div>
+        <div class="admin-stat-label">Achievements</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-quick-links">
+    <a asp-action="CreatePlace" class="admin-btn">+ Add Place</a>
+    <a asp-action="CreateCategory" class="admin-btn admin-btn-ghost">+ Add Category</a>
+    <a asp-action="CreateAchievement" class="admin-btn admin-btn-ghost">+ Add Achievement</a>
+</div>
+
+<!-- Panels Grid -->
+<div class="admin-grid-2" style="margin-top:1.5rem;">
+
+    <!-- Top Places -->
+    <div class="admin-panel">
+        <div class="admin-panel-header">
+            <h3>🔥 Top Places</h3>
+            <a asp-action="Places">View all →</a>
+        </div>
+        <ul class="admin-mini-list">
+            @for (int i = 0; i < topPlaces.Count; i++)
+            {
+                var p = topPlaces[i];
+                <li class="admin-mini-item">
+                    <span class="admin-mini-rank">@(i + 1)</span>
+                    <span class="admin-mini-name">@p.Name</span>
+                    <span class="admin-mini-badge">@p.VisitCount visits</span>
+                </li>
+            }
+            @if (topPlaces.Count == 0)
+            {
+                <li class="admin-mini-item"><span class="admin-mini-name" style="color:rgba(255,255,255,0.3);">No places yet</span></li>
+            }
+        </ul>
+    </div>
+
+    <!-- Top Users -->
+    <div class="admin-panel">
+        <div class="admin-panel-header">
+            <h3>🏆 Top Users</h3>
+            <a asp-action="Users">View all →</a>
+        </div>
+        <ul class="admin-mini-list">
+            @for (int i = 0; i < topUsers.Count; i++)
+            {
+                var u = topUsers[i];
+                <li class="admin-mini-item">
+                    <span class="admin-mini-rank">@(i + 1)</span>
+                    <span class="admin-mini-name">@u.Name</span>
+                    <span class="admin-mini-badge">@u.Points pts</span>
+                </li>
+            }
+            @if (topUsers.Count == 0)
+            {
+                <li class="admin-mini-item"><span class="admin-mini-name" style="color:rgba(255,255,255,0.3);">No users yet</span></li>
+            }
+        </ul>
+    </div>
+</div>
+
+<!-- Recent Reviews -->
+<div class="admin-panel" style="margin-top:1.5rem;">
+    <div class="admin-panel-header">
+        <h3>💬 Recent Reviews</h3>
+        <a asp-action="Reviews">View all →</a>
+    </div>
+    <ul class="admin-mini-list">
+        @foreach (var r in recentReviews)
+        {
+            <li class="admin-mini-item">
+                <span class="admin-mini-name">
+                    <strong>@r.Place?.Name</strong>
+                    <span style="color:rgba(255,255,255,0.35);margin-left:0.5rem;">— "@(r.Comment?.Length > 60 ? r.Comment.Substring(0, 60) + "..." : r.Comment)"</span>
+                </span>
+                <span class="admin-mini-badge">⭐ @r.Rating</span>
+            </li>
+        }
+        @if (recentReviews.Count == 0)
+        {
+            <li class="admin-mini-item"><span class="admin-mini-name" style="color:rgba(255,255,255,0.3);">No reviews yet</span></li>
+        }
+    </ul>
+</div>
+
+<!-- Danger Zone -->
+<div class="danger-zone">
+    <h3>⚠️ Danger Zone</h3>
+    <p>Factory reset will <strong>permanently delete</strong> all users (except admin), reviews, and likes. Place visit counts and ratings reset to zero. This cannot be undone.</p>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <form method="post" asp-action="ResetLeaderboard" onsubmit="return confirm('Reset all user points, badges and visits? This cannot be undone.')">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="admin-btn-sm admin-btn-danger" style="padding:0.5rem 1rem;">🔄 Reset Leaderboard</button>
+        </form>
+        <form method="post" asp-action="FactoryReset" id="factoryResetForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="confirmText" value="" />
+            <button type="button" class="admin-btn-sm admin-btn-danger" style="padding:0.5rem 1rem;" onclick="(function(f){
+                if (!confirm('⚠️ FACTORY RESET\n\nThis DELETES all users, reviews, likes, feedback.\nOnly the admin account survives.\n\nContinue?')) return;
+                var typed = prompt('Type the word  RESET  (capitals, no quotes) to confirm:');
+                if (typed !== 'RESET') { alert('Cancelled — phrase did not match.'); return; }
+                f.querySelector('input[name=confirmText]').value = typed;
+                f.submit();
+            })(document.getElementById('factoryResetForm'));">💀 Factory Reset</button>
+        </form>
+    </div>
+</div>

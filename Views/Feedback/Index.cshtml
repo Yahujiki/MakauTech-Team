@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Feedback";
+}
+
+<section class="page-hero page-hero--compact">
+    <h1>Feedback</h1>
+    <p>Report bugs, suggest improvements, or share general thoughts. Logged-in users earn <strong>+2 pts</strong> per submission.</p>
+</section>
+
+@if (TempData["FeedbackError"] != null)
+{
+    <div class="alert alert-error fb-flash">@TempData["FeedbackError"]</div>
+}
+
+<form asp-action="Submit" asp-controller="Feedback" method="post" enctype="multipart/form-data" class="fb-minimal">
+    <div class="fb-field">
+        <label for="fbSubject">Subject</label>
+        <select name="subject" id="fbSubject" class="form-control" required>
+            <option value="" disabled selected hidden>Choose a topic</option>
+            <option value="Report Bug">Report bug</option>
+            <option value="General Feedback">General feedback</option>
+            <option value="Feature Request">Feature request</option>
+            <option value="Places &amp; Content">Places &amp; content</option>
+            <option value="Account">Account</option>
+        </select>
+    </div>
+    <div class="fb-field">
+        <label for="fbDesc">Description</label>
+        <textarea name="description" id="fbDesc" class="form-control" rows="6" required maxlength="4000" placeholder="What happened? What would you like to see?"></textarea>
+    </div>
+    <div class="fb-field">
+        <label for="fbFile">Attachment <span class="fb-optional">optional</span></label>
+        <input type="file" name="attachment" id="fbFile" class="form-control fb-file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt" />
+        <p class="fb-hint">JPG, PNG, WebP, GIF, PDF, or TXT — up to 4 MB.</p>
+    </div>
+    <button type="submit" class="btn-fb-submit">Submit</button>
+</form>

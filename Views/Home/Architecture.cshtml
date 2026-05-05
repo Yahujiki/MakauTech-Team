@@ -1,0 +1,481 @@
+@{
+    ViewData["Title"] = "Architecture";
+}
+
+<style>
+    .arch-wrap { max-width: 1100px; margin: 24px auto; padding: 0 18px; color: #0f172a; }
+    .arch-wrap h1 { font-size: 28px; margin-bottom: 4px; color: #16a34a; }
+    .arch-wrap .arch-sub { color: #64748b; margin-bottom: 24px; font-size: 14px; }
+    .arch-section { margin: 32px 0; padding: 22px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .arch-section h2 { font-size: 20px; color: #0f172a; margin: 0 0 14px; border-left: 4px solid #16a34a; padding-left: 12px; }
+    .arch-section h3 { font-size: 15px; color: #334155; margin: 18px 0 8px; }
+    .arch-section p { line-height: 1.6; color: #334155; font-size: 14.5px; margin: 6px 0; }
+    .arch-section ul { padding-left: 22px; line-height: 1.7; font-size: 14px; }
+    .arch-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+    .arch-table th { background: #16a34a; color: #fff; text-align: left; padding: 8px 10px; font-weight: 600; }
+    .arch-table td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .arch-table tr:nth-child(even) td { background: #f8fafc; }
+    .arch-table code { font-family: Consolas, monospace; font-size: 12.5px; color: #0f172a; }
+    .arch-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .arch-pill-cascade { background: #fee2e2; color: #991b1b; }
+    .arch-pill-restrict { background: #fef3c7; color: #854d0e; }
+    .arch-pill-tph { background: #dcfce7; color: #14532d; }
+    .arch-pill-pk { background: #dbeafe; color: #1e3a8a; }
+    .arch-code { background: #0f172a; color: #f1f5f9; font-family: Consolas, "Courier New", monospace; font-size: 12.5px; padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.55; margin: 8px 0; }
+    .arch-code .kw { color: #93c5fd; }
+    .arch-code .ty { color: #fde047; }
+    .arch-code .st { color: #86efac; }
+    .arch-code .cm { color: #94a3b8; font-style: italic; }
+    .arch-mermaid { background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px solid #e2e8f0; overflow-x: auto; }
+    .arch-mermaid svg { max-width: 100%; height: auto; }
+    .arch-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+    .arch-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    .arch-card-title { font-weight: 700; color: #0f172a; font-size: 13.5px; }
+    .arch-card-meta { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .arch-toc { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; }
+    .arch-toc strong { color: #14532d; }
+    .arch-toc a { color: #16a34a; text-decoration: none; margin-right: 14px; font-weight: 500; }
+    .arch-toc a:hover { text-decoration: underline; }
+    .arch-note { background: #fef9c3; border-left: 4px solid #facc15; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin: 10px 0; }
+    .file-ref { font-family: Consolas, monospace; font-size: 12px; color: #2563eb; }
+</style>
+
+<div class="arch-wrap">
+    <h1>🏛️ MakauTech — System Architecture</h1>
+    <p class="arch-sub">
+        Database design, OOP concepts, and code patterns used in the project.
+        Built on ASP.NET Core 8 MVC + Entity Framework Core 8 + MySQL (Pomelo).
+    </p>
+
+    <div class="arch-toc">
+        <strong>Jump to:</strong>
+        <a href="#erd">ERD</a>
+        <a href="#pk">Primary Keys</a>
+        <a href="#fk">Foreign Keys</a>
+        <a href="#inheritance">Inheritance</a>
+        <a href="#polymorphism">Polymorphism</a>
+        <a href="#patterns">Design Patterns</a>
+    </div>
+
+    <!-- ============ ERD ============ -->
+    <section id="erd" class="arch-section">
+        <h2>1. Entity Relationship Diagram (ERD)</h2>
+        <p>
+            The schema centres on <strong>Users</strong>, <strong>Places</strong>, and the join entities
+            (<strong>Reviews</strong>, <strong>PlaceLikes</strong>) that link them. <strong>Admin</strong> shares
+            the <code>Users</code> table via TPH inheritance. <strong>Places</strong> belong to a
+            <strong>Category</strong>; <strong>Achievements</strong> and <strong>Feedback</strong> are
+            independent tables.
+        </p>
+        <div class="arch-mermaid">
+            <pre class="mermaid">
+erDiagram
+    USER ||--o{ REVIEW : writes
+    USER ||--o{ PLACELIKE : likes
+    USER ||--o{ FEEDBACK : submits
+    PLACE ||--o{ REVIEW : has
+    PLACE ||--o{ PLACELIKE : receives
+    CATEGORY ||--o{ PLACE : categorises
+    USER ||--|| ADMIN : "TPH (Discriminator)"
+
+    USER {
+        int Id PK
+        string Discriminator "TPH"
+        string Name
+        string Email UK
+        string Password "bcrypt"
+        int Points
+        string Badges
+        bool IsOnboarded
+        int FailedLoginAttempts
+        datetime LockedUntil
+        datetime LastLoginAt
+        datetime CreatedAt
+    }
+    ADMIN {
+        string Role "Admin/SuperAdmin"
+        datetime LastLogin
+    }
+    PLACE {
+        int Id PK
+        int CategoryId FK
+        string Name
+        string Location
+        string Description
+        string ImageUrl
+        double Rating
+        int VisitCount
+        double Latitude
+        double Longitude
+    }
+    CATEGORY {
+        int Id PK
+        string Name UK
+        string Icon
+    }
+    REVIEW {
+        int Id PK
+        int UserId FK
+        int PlaceId FK
+        string UserName
+        int Rating
+        string Comment
+        string ImageUrl
+        datetime CreatedAt
+    }
+    PLACELIKE {
+        int Id PK
+        int UserId FK
+        int PlaceId FK
+        datetime CreatedAt
+    }
+    ACHIEVEMENT {
+        int Id PK
+        string Name UK
+        string Description
+        string Icon
+        int PointsRequired
+        int PlacesRequired
+    }
+    FEEDBACK {
+        int Id PK
+        int UserId FK
+        string UserName
+        int Rating
+        string Subject
+        string Description
+        string AttachmentUrl
+        datetime CreatedAt
+    }
+    UPDATE {
+        int Id PK
+        string Title
+        string Summary
+        string Body
+        string ImageUrl
+        string AuthorName
+        bool IsPublished
+        datetime CreatedAt
+    }
+            </pre>
+        </div>
+        <div class="arch-note">
+            <strong>Diagram notation:</strong>
+            <code>||--o{</code> = one-to-many ·
+            <code>||--||</code> = one-to-one (TPH) ·
+            <code>PK</code> = Primary Key ·
+            <code>FK</code> = Foreign Key ·
+            <code>UK</code> = Unique Key.
+        </div>
+    </section>
+
+    <!-- ============ PRIMARY KEYS ============ -->
+    <section id="pk" class="arch-section">
+        <h2>2. Primary Keys</h2>
+        <p>
+            Every persistent entity inherits an <code>int Id</code> primary key from the abstract
+            <code>BaseEntity</code> class. The PK is auto-incremented by the database (MySQL <code>AUTO_INCREMENT</code>).
+            EF Core recognises the <code>Id</code> convention without needing a <code>[Key]</code> attribute.
+        </p>
+
+        <h3>BaseEntity (defines the convention)</h3>
+        <pre class="arch-code"><span class="kw">public abstract class</span> <span class="ty">BaseEntity</span>
+{
+    <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }                        <span class="cm">// Primary key — auto-increment</span>
+    <span class="kw">public</span> DateTime CreatedAt { <span class="kw">get</span>; <span class="kw">set</span>; } = DateTime.Now;
+
+    <span class="kw">public abstract string</span> GetDisplayInfo();
+    <span class="kw">public virtual string</span> GetEntityType() =&gt; <span class="kw">this</span>.GetType().Name;
+}</pre>
+        <p class="file-ref">Models/BaseEntity.cs:3</p>
+
+        <h3>Primary key summary</h3>
+        <table class="arch-table">
+            <thead>
+                <tr><th>Entity</th><th>PK Column</th><th>Type</th><th>Strategy</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>User</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Shared with Admin via TPH</td></tr>
+                <tr><td>Admin</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Same row as User; <code>Discriminator='Admin'</code></td></tr>
+                <tr><td>Place</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Indexed on Name + CategoryId</td></tr>
+                <tr><td>Category</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Name is unique key</td></tr>
+                <tr><td>Review</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Indexed on PlaceId, UserId</td></tr>
+                <tr><td>PlaceLike</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Composite unique on (UserId, PlaceId)</td></tr>
+                <tr><td>Achievement</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Name is unique key</td></tr>
+                <tr><td>Feedback</td><td><code>Id</code></td><td>int</td><td>AUTO_INCREMENT</td><td>Indexed on UserId</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============ FOREIGN KEYS ============ -->
+    <section id="fk" class="arch-section">
+        <h2>3. Foreign Keys</h2>
+        <p>
+            Foreign keys are configured using EF Core's <strong>Fluent API</strong> in
+            <code>OnModelCreating</code> rather than data annotations. This keeps domain models clean and
+            puts persistence concerns in the data layer.
+        </p>
+
+        <h3>Fluent API config (excerpt)</h3>
+        <pre class="arch-code"><span class="cm">// Review → Place (cascade)</span>
+modelBuilder.Entity&lt;<span class="ty">Review</span>&gt;()
+    .HasOne(r =&gt; r.Place)
+    .WithMany()
+    .HasForeignKey(r =&gt; r.PlaceId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+<span class="cm">// Place → Category (restrict — cannot delete category if places use it)</span>
+modelBuilder.Entity&lt;<span class="ty">Place</span>&gt;()
+    .HasOne(p =&gt; p.Category)
+    .WithMany()
+    .HasForeignKey(p =&gt; p.CategoryId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+<span class="cm">// PlaceLike → composite unique (one like per user per place)</span>
+modelBuilder.Entity&lt;<span class="ty">PlaceLike</span>&gt;()
+    .HasIndex(l =&gt; <span class="kw">new</span> { l.UserId, l.PlaceId })
+    .IsUnique();</pre>
+        <p class="file-ref">Data/MakauTechDbContext.cs:73–121</p>
+
+        <h3>Foreign key summary</h3>
+        <table class="arch-table">
+            <thead>
+                <tr><th>From</th><th>FK Column</th><th>References</th><th>On Delete</th><th>Navigation Property</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Review</td><td><code>UserId</code></td><td>User.Id</td><td><span class="arch-pill arch-pill-cascade">Cascade</span></td><td><code>Review.User</code></td></tr>
+                <tr><td>Review</td><td><code>PlaceId</code></td><td>Place.Id</td><td><span class="arch-pill arch-pill-cascade">Cascade</span></td><td><code>Review.Place</code></td></tr>
+                <tr><td>PlaceLike</td><td><code>UserId</code></td><td>User.Id</td><td><span class="arch-pill arch-pill-cascade">Cascade</span></td><td><code>PlaceLike.User</code></td></tr>
+                <tr><td>PlaceLike</td><td><code>PlaceId</code></td><td>Place.Id</td><td><span class="arch-pill arch-pill-cascade">Cascade</span></td><td><code>PlaceLike.Place</code></td></tr>
+                <tr><td>Place</td><td><code>CategoryId</code></td><td>Category.Id</td><td><span class="arch-pill arch-pill-restrict">Restrict</span></td><td><code>Place.Category</code></td></tr>
+                <tr><td>Feedback</td><td><code>UserId</code></td><td>User.Id (nullable)</td><td>Default</td><td><code>Feedback.User</code></td></tr>
+            </tbody>
+        </table>
+        <div class="arch-note">
+            <strong>Cascade vs Restrict:</strong> Reviews and PlaceLikes <em>cascade</em> — when a User or Place is deleted,
+            their reviews and likes are automatically removed. Place→Category is <em>restricted</em> so a Category cannot be
+            deleted while Places still reference it (data-integrity guard).
+        </div>
+    </section>
+
+    <!-- ============ INHERITANCE ============ -->
+    <section id="inheritance" class="arch-section">
+        <h2>4. Inheritance</h2>
+        <p>
+            The codebase demonstrates inheritance at <strong>two levels</strong>:
+            (a) every entity inherits from <code>BaseEntity</code>, and
+            (b) <code>Admin</code> inherits from <code>User</code> using EF Core's
+            <strong>Table-Per-Hierarchy (TPH)</strong> mapping strategy.
+        </p>
+
+        <h3>4.1 Entity inheritance hierarchy</h3>
+        <div class="arch-card-grid">
+            <div class="arch-card">
+                <div class="arch-card-title">BaseEntity (abstract)</div>
+                <div class="arch-card-meta">Id · CreatedAt · GetDisplayInfo()</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">↳ User</div>
+                <div class="arch-card-meta">Name, Email, Password, Points, Badges</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">&nbsp;&nbsp;&nbsp;↳ Admin</div>
+                <div class="arch-card-meta"><span class="arch-pill arch-pill-tph">TPH</span> Role, LastLogin</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">↳ Place / Category / Review / PlaceLike</div>
+                <div class="arch-card-meta">all extend BaseEntity</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">↳ Achievement / Feedback</div>
+                <div class="arch-card-meta">extend BaseEntity</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">↳ Challenge (abstract)</div>
+                <div class="arch-card-meta">VisitChallenge, ReviewChallenge, ExplorerChallenge</div>
+            </div>
+            <div class="arch-card">
+                <div class="arch-card-title">↳ FoodItem (abstract)</div>
+                <div class="arch-card-meta">CommonFood, RareFood, GoldenTrophy, HazardFood…</div>
+            </div>
+        </div>
+
+        <h3>4.2 TPH inheritance: User → Admin</h3>
+        <p>
+            <strong>One database table</strong> (<code>Users</code>) stores both User and Admin rows.
+            EF Core distinguishes them with a <code>Discriminator</code> column.
+        </p>
+        <pre class="arch-code"><span class="cm">// Models/Admin.cs — Admin extends User</span>
+<span class="kw">public class</span> <span class="ty">Admin</span> : <span class="ty">User</span>
+{
+    <span class="kw">public string</span> Role { <span class="kw">get</span>; <span class="kw">set</span>; } = <span class="st">"Admin"</span>;
+    <span class="kw">public</span> DateTime LastLogin { <span class="kw">get</span>; <span class="kw">set</span>; } = DateTime.Now;
+
+    <span class="kw">public bool</span> CanDeleteReview() =&gt; <span class="kw">true</span>;
+
+    <span class="kw">public override string</span> GetDisplayInfo()
+        =&gt; $<span class="st">"{Name} (Admin) — Last login: {LastLogin:g}"</span>;
+}</pre>
+        <p class="file-ref">Models/Admin.cs:3</p>
+
+        <pre class="arch-code"><span class="cm">// Data/MakauTechDbContext.cs — TPH configured here</span>
+modelBuilder.Entity&lt;<span class="ty">User</span>&gt;()
+    .HasDiscriminator&lt;<span class="kw">string</span>&gt;(<span class="st">"Discriminator"</span>)
+    .HasValue&lt;<span class="ty">User</span>&gt;(<span class="st">"User"</span>)
+    .HasValue&lt;<span class="ty">Admin</span>&gt;(<span class="st">"Admin"</span>);</pre>
+        <p class="file-ref">Data/MakauTechDbContext.cs:23–26</p>
+
+        <h3>4.3 Why TPH (not separate tables)?</h3>
+        <ul>
+            <li><strong>Simplicity</strong> — one table, no joins required to query any user.</li>
+            <li><strong>Polymorphic queries</strong> — <code>_context.Users.ToList()</code> returns Users <em>and</em> Admins as their concrete types.</li>
+            <li><strong>Shared columns</strong> — Email, Password, Points all apply to both. No duplication.</li>
+            <li><strong>Trade-off</strong> — Admin-specific columns (Role, LastLogin) are nullable for User rows. Acceptable for small hierarchies.</li>
+        </ul>
+    </section>
+
+    <!-- ============ POLYMORPHISM ============ -->
+    <section id="polymorphism" class="arch-section">
+        <h2>5. Polymorphism</h2>
+        <p>
+            Polymorphism lets the same operation behave differently depending on the runtime type.
+            The codebase uses three flavours: <strong>method overriding</strong>, <strong>type-checking dispatch</strong>,
+            and <strong>strategy via delegates</strong>.
+        </p>
+
+        <h3>5.1 Method overriding (virtual dispatch)</h3>
+        <p>Every entity overrides the abstract <code>GetDisplayInfo()</code> from <code>BaseEntity</code>:</p>
+        <pre class="arch-code"><span class="cm">// User.cs:85</span>
+<span class="kw">public override string</span> GetDisplayInfo()
+    =&gt; $<span class="st">"{Name} — Level: {Level} ({Points} pts)"</span>;
+
+<span class="cm">// Place.cs:15</span>
+<span class="kw">public override string</span> GetDisplayInfo()
+    =&gt; $<span class="st">"{Name} — {Location} (★{Rating:F1})"</span>;
+
+<span class="cm">// Admin.cs:14 (further specialised)</span>
+<span class="kw">public override string</span> GetDisplayInfo()
+    =&gt; $<span class="st">"{Name} (Admin) — Last login: {LastLogin:g}"</span>;</pre>
+
+        <h3>5.2 Type-checking polymorphism (<code>is</code> pattern)</h3>
+        <p>
+            Login flow routes Admin and User differently using runtime type-check on the polymorphic
+            <code>User</code> reference returned from EF Core:
+        </p>
+        <pre class="arch-code"><span class="cm">// HomeController.cs:318 — same variable, different routing</span>
+<span class="kw">var</span> user = _context.Users.FirstOrDefault(u =&gt; u.Email == model.Email);
+<span class="cm">// ... password verification ...</span>
+HttpContext.Session.SetInt32(<span class="st">"UserId"</span>, user.Id);
+<span class="kw">if</span> (user <span class="kw">is</span> <span class="ty">Admin</span>) <span class="kw">return</span> RedirectToAction(<span class="st">"Dashboard"</span>, <span class="st">"Admin"</span>);
+<span class="kw">return</span> RedirectToAction(<span class="st">"Index"</span>);</pre>
+
+        <p>The same pattern guards every admin endpoint:</p>
+        <pre class="arch-code"><span class="cm">// AdminController.cs:25 — IsAdmin() runtime type check</span>
+<span class="kw">private bool</span> IsAdmin()
+{
+    <span class="kw">var</span> userId = HttpContext.Session.GetInt32(<span class="st">"UserId"</span>);
+    <span class="kw">if</span> (userId == <span class="kw">null</span>) <span class="kw">return false</span>;
+    <span class="kw">var</span> user = _context.Users.Find(userId);
+    <span class="kw">return</span> user <span class="kw">is</span> <span class="ty">Admin</span>;    <span class="cm">// ← polymorphic dispatch</span>
+}</pre>
+
+        <h3>5.3 Abstract method + concrete implementations (template method)</h3>
+        <p>
+            <code>FoodItem</code> defines a template (<code>GetDisplayInfo</code>) that calls an abstract hook
+            (<code>GetFoodDescription</code>). Each food subclass fills in its own description:
+        </p>
+        <pre class="arch-code"><span class="cm">// FoodItem.cs — abstract base</span>
+<span class="kw">public abstract class</span> <span class="ty">FoodItem</span> : <span class="ty">BaseEntity</span>
+{
+    <span class="kw">public abstract string</span> GetFoodDescription();
+    <span class="kw">public abstract double</span> GetSpawnChance();
+    <span class="kw">public override string</span> GetDisplayInfo()
+        =&gt; $<span class="st">"{Emoji} {Name} — {GetFoodDescription()} ({PointValue}pts)"</span>;
+}
+
+<span class="cm">// concrete subclasses — same shape, different behaviour</span>
+<span class="kw">public class</span> <span class="ty">CommonFood</span> : <span class="ty">FoodItem</span>
+{
+    <span class="kw">public override string</span> GetFoodDescription() =&gt; <span class="st">"A popular Sibu street food"</span>;
+    <span class="kw">public override double</span> GetSpawnChance() =&gt; <span class="kw">0.02</span>;
+}
+<span class="kw">public class</span> <span class="ty">GoldenTrophy</span> : <span class="ty">FoodItem</span>
+{
+    <span class="kw">public override string</span> GetFoodDescription() =&gt; <span class="st">"Legendary 5-pt prize!"</span>;
+    <span class="kw">public override double</span> GetSpawnChance() =&gt; <span class="kw">0.005</span>;
+}</pre>
+    </section>
+
+    <!-- ============ DESIGN PATTERNS ============ -->
+    <section id="patterns" class="arch-section">
+        <h2>6. Design Patterns Worth Highlighting</h2>
+
+        <h3>6.1 Strategy Pattern via Func delegates (BadgeService)</h3>
+        <p>
+            Each badge rule holds a swappable predicate (<code>Func&lt;User, DbContext, bool&gt;</code>).
+            Adding a new badge needs no modification to existing logic — it is the
+            <strong>Open–Closed Principle</strong> in practice.
+        </p>
+        <pre class="arch-code"><span class="kw">public class</span> <span class="ty">BadgeRule</span>
+{
+    <span class="kw">public string</span> BadgeName { <span class="kw">get</span>; <span class="kw">init</span>; } = <span class="st">""</span>;
+    <span class="kw">public string</span> Icon { <span class="kw">get</span>; <span class="kw">init</span>; } = <span class="st">"🏅"</span>;
+    <span class="kw">public</span> Func&lt;<span class="ty">User</span>, <span class="ty">MakauTechDbContext</span>, <span class="kw">bool</span>&gt; Condition { <span class="kw">get</span>; <span class="kw">init</span>; } = (_, _) =&gt; <span class="kw">false</span>;
+}
+
+<span class="kw">private static readonly</span> IReadOnlyList&lt;<span class="ty">BadgeRule</span>&gt; Rules = <span class="kw">new</span> List&lt;<span class="ty">BadgeRule</span>&gt;
+{
+    <span class="kw">new</span>() { BadgeName = <span class="st">"First Step"</span>, Icon = <span class="st">"👣"</span>,
+            Condition = (u, _) =&gt; u.VisitedPlaceIds.Count &gt;= <span class="kw">1</span> },
+    <span class="kw">new</span>() { BadgeName = <span class="st">"Explorer"</span>,   Icon = <span class="st">"🗺️"</span>,
+            Condition = (u, _) =&gt; u.VisitedPlaceIds.Count &gt;= <span class="kw">3</span> },
+    <span class="cm">// add more rules without editing existing code</span>
+};</pre>
+        <p class="file-ref">Services/BadgeService.cs:29–119</p>
+
+        <h3>6.2 Repository pattern (DbContext as Unit of Work)</h3>
+        <p>
+            EF Core's <code>DbContext</code> acts as both a repository and a unit-of-work.
+            Controllers inject it via constructor:
+        </p>
+        <pre class="arch-code"><span class="kw">public class</span> <span class="ty">PlaceController</span> : <span class="ty">Controller</span>
+{
+    <span class="kw">private readonly</span> <span class="ty">MakauTechDbContext</span> _context;
+    <span class="kw">public</span> PlaceController(<span class="ty">MakauTechDbContext</span> context) =&gt; _context = context;
+    <span class="cm">// ... actions use _context.Places, _context.Reviews, etc.</span>
+}</pre>
+
+        <h3>6.3 Filter pattern (cross-cutting concerns)</h3>
+        <p>
+            Anti-forgery and (when added) admin authorisation are implemented as ASP.NET filters,
+            applied globally or per controller — no boilerplate inside each action.
+        </p>
+        <pre class="arch-code"><span class="cm">// Program.cs — global CSRF for every POST</span>
+builder.Services.AddControllersWithViews(options =&gt;
+{
+    options.Filters.Add(<span class="kw">new</span> AutoValidateAntiforgeryTokenAttribute());
+});</pre>
+    </section>
+
+    <p style="text-align:center; color:#94a3b8; font-size:12px; margin: 28px 0 8px;">
+        Architecture page — for academic reference. Generated from live source code.
+    </p>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#16a34a',
+                primaryBorderColor: '#15803d',
+                primaryTextColor: '#0f172a',
+                lineColor: '#16a34a',
+                fontSize: '13px'
+            },
+            er: { useMaxWidth: true }
+        });
+    </script>
+}

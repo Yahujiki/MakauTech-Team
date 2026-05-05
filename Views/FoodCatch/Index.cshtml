@@ -1,0 +1,387 @@
+@{
+    ViewData["Title"] = "Food Catch";
+    var playCost = ViewBag.PlayCost ?? 20;
+    var firstFree = ViewBag.FirstGameFree == true;
+}
+
+@section Styles {
+<style>
+body { background: #030d06 !important; }
+.main-content { background: #030d06; }
+.footer { display: none; }
+</style>
+}
+
+<div class="foodcatch-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1rem; padding:0.5rem 0;">
+        <a asp-controller="Home" asp-action="Games" style="display:inline-flex;align-items:center;gap:0.4rem;color:rgba(255,255,255,0.65);font-weight:700;font-size:0.9rem;border:1px solid rgba(255,255,255,0.15);padding:0.4rem 1rem;border-radius:10px;transition:all 0.18s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">← Games</a>
+        <a asp-controller="Home" asp-action="Profile" style="display:inline-flex;align-items:center;gap:0.4rem;color:#4ade80;font-weight:700;font-size:0.9rem;border:1px solid rgba(34,197,94,0.3);padding:0.4rem 1rem;border-radius:10px;background:rgba(34,197,94,0.1);">👤 @ViewBag.UserPoints pts</a>
+    </div>
+
+    <!-- PAY TO PLAY SCREEN -->
+    <div id="payScreen" class="fc-pay-screen">
+        <div class="fc-pay-card">
+            <div class="fc-hero-emoji">🍜</div>
+            <h2 style="color:var(--primary); margin:0.3rem 0 0.2rem; font-size:1.6rem;">Sibu Food Catch</h2>
+            <p style="color:var(--text-light); margin-bottom:1rem; font-size:0.9rem;">Catch falling street food with your bowl! Avoid the rotten ones.</p>
+            <div class="fc-food-legend">
+                <span>🍜 1pt</span><span>🍝 2pt</span><span>🥐 3pt</span><span>🍲 4pt</span><span>🏆 5pt</span><span class="fc-legend-bad">💀 -1 life</span>
+            </div>
+            <div class="game-fun-mini" role="note"><b>Fun tip:</b> Move your catcher smoothly — combos feel great when golden 🏆 trophies fall, but one 💀 rotten bite costs a whole life!</div>
+            <div class="fc-pay-cost">
+                @if (firstFree)
+                {
+                    <span>First Game</span>
+                    <strong style="color:#4caf50;">🎁 FREE!</strong>
+                }
+                else
+                {
+                    <span>Entry Fee</span>
+                    <strong>🪙 20 pts</strong>
+                }
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-light); margin:0.5rem 0;">Your balance: <strong id="payBalance">@ViewBag.UserPoints</strong> pts</p>
+            <button id="btnPay" class="fc-btn-pay">@(firstFree ? "🎁 Play Free!" : "🎮 Pay & Play")</button>
+            <p id="payError" style="color:#e53935; font-weight:600; margin-top:0.5rem; display:none;"></p>
+        </div>
+    </div>
+
+    <!-- GAME AREA (hidden until paid) -->
+    <div id="gameArea" style="display:none;">
+        <div class="foodcatch-hud">
+            <span id="hud-lives">❤️❤️❤️</span>
+            <span id="hud-combo" style="color:var(--accent); display:none;">🔥 x1</span>
+            <span id="hud-score">Score: 0</span>
+        </div>
+        <canvas id="gameCanvas" class="foodcatch-canvas" width="480" height="600"></canvas>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="gameOverScreen" style="display:none; margin-top:1.5rem;">
+        <div class="fc-pay-card">
+            <div class="fc-hero-emoji" id="goEmoji">😅</div>
+            <h3 style="color:var(--primary); font-size:1.5rem;">Game Over!</h3>
+            <div class="fc-result-stats">
+                <div class="fc-result-stat"><span id="finalScore">0</span><small>Score</small></div>
+                <div class="fc-result-stat"><span id="finalCaught">0</span><small>Caught</small></div>
+                <div class="fc-result-stat"><span id="finalBest">0</span><small>Best Combo</small></div>
+            </div>
+            <p id="pointsMsg" style="color:var(--accent); font-weight:600; margin:0.5rem 0;"></p>
+            <div class="fc-pay-cost" style="margin-top:0.75rem;">
+                <span>Play Again</span>
+                <strong>🪙 20 pts</strong>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-light); margin:0.3rem 0;">Balance: <strong id="goBalance">0</strong> pts</p>
+            <button id="btnPlayAgain" class="fc-btn-pay">🔄 Pay & Play Again</button>
+            <p id="goError" style="color:#e53935; font-weight:600; margin-top:0.5rem; display:none;"></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let currentBalance = @ViewBag.UserPoints;
+    let loopRunning = false;
+
+    // Food definitions with rarity colors for glow
+    const FOODS = [
+        { emoji: '🍜', name: 'Kolo Mee', pts: 1, hazard: false, weight: 28, glow: '#4caf50' },
+        { emoji: '🍝', name: 'Kampua Mee', pts: 2, hazard: false, weight: 20, glow: '#66bb6a' },
+        { emoji: '🥐', name: 'Kompia', pts: 3, hazard: false, weight: 18, glow: '#2196f3' },
+        { emoji: '🍲', name: 'Laksa', pts: 4, hazard: false, weight: 14, glow: '#9c27b0' },
+        { emoji: '🏆', name: 'Golden Trophy', pts: 5, hazard: false, weight: 5, glow: '#ffd700' },
+        { emoji: '💀', name: 'Rotten Food', pts: 0, hazard: true, weight: 15, glow: '#e53935' }
+    ];
+    const totalWeight = FOODS.reduce((s, f) => s + f.weight, 0);
+
+    function pickFood() {
+        let r = Math.random() * totalWeight, acc = 0;
+        for (const f of FOODS) { acc += f.weight; if (r <= acc) return f; }
+        return FOODS[0];
+    }
+
+    // Game state
+    let player, items, score, lives, gameOver, caught, baseSpeed, spawnTimer, spawnInterval;
+    let combo = 0, bestCombo = 0, particles = [], floatTexts = [];
+    let shakeTime = 0, shakeIntensity = 0;
+
+    // Particle system
+    function spawnParticles(x, y, color, count) {
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 6,
+                vy: -(Math.random() * 4 + 1),
+                life: 1,
+                color,
+                size: Math.random() * 4 + 2
+            });
+        }
+    }
+
+    function addFloatText(x, y, text, color) {
+        floatTexts.push({ x, y, text, color, life: 1, vy: -1.5 });
+    }
+
+    // PAY TO PLAY
+    async function payAndStart(errorElId) {
+        const errEl = document.getElementById(errorElId);
+        errEl.style.display = 'none';
+        const res = (window.MakauSecurity && MakauSecurity.csrfFetch)
+            ? await MakauSecurity.csrfFetch('/FoodCatch/PayToPlay', { method: 'POST' })
+            : await fetch('/FoodCatch/PayToPlay', { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) { errEl.textContent = data.message; errEl.style.display = 'block'; MakauSound.hazard(); return; }
+        MakauSound.pay();
+        currentBalance = data.remainingPoints;
+        document.getElementById('payScreen').style.display = 'none';
+        document.getElementById('gameOverScreen').style.display = 'none';
+        document.getElementById('gameArea').style.display = 'block';
+        resetGame();
+        if (!loopRunning) { loopRunning = true; loop(); }
+    }
+
+    document.getElementById('btnPay').addEventListener('click', () => payAndStart('payError'));
+    document.getElementById('btnPlayAgain').addEventListener('click', () => payAndStart('goError'));
+
+    function resetGame() {
+        player = { x: W / 2, w: 60 };
+        items = []; particles = []; floatTexts = [];
+        score = 0; lives = 3; caught = 0; combo = 0; bestCombo = 0; gameOver = false;
+        baseSpeed = 2.5; spawnTimer = 0; spawnInterval = 50;
+        shakeTime = 0; shakeIntensity = 0;
+        updateHUD();
+    }
+
+    function updateHUD() {
+        document.getElementById('hud-lives').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+        document.getElementById('hud-score').textContent = 'Score: ' + score;
+        const comboEl = document.getElementById('hud-combo');
+        if (combo >= 3) { comboEl.textContent = '🔥 x' + combo; comboEl.style.display = 'inline'; }
+        else { comboEl.style.display = 'none'; }
+    }
+
+    function spawnItem() {
+        const food = pickFood();
+        items.push({
+            x: Math.random() * (W - 60) + 30, y: -30, food, size: 30,
+            speed: baseSpeed + Math.random() * 1.2,
+            wobble: Math.random() * Math.PI * 2, wobbleSpeed: 0.03 + Math.random() * 0.02
+        });
+    }
+
+    // Input
+    let keys = {};
+    let touchStartX = null;
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { keys[e.key] = true; e.preventDefault(); }
+    });
+    document.addEventListener('keyup', e => { keys[e.key] = false; });
+    canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+        if (touchStartX !== null) {
+            const dx = e.touches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 5) { player.x += dx * 0.6; touchStartX = e.touches[0].clientX; }
+        }
+        e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => { touchStartX = null; });
+
+    function update() {
+        if (gameOver) return;
+        if (shakeTime > 0) shakeTime--;
+
+        const speed = 7;
+        if (keys['ArrowLeft']) player.x -= speed;
+        if (keys['ArrowRight']) player.x += speed;
+        player.x = Math.max(player.w / 2, Math.min(W - player.w / 2, player.x));
+
+        spawnTimer++;
+        if (spawnTimer >= spawnInterval) { spawnItem(); spawnTimer = 0; }
+
+        for (let i = items.length - 1; i >= 0; i--) {
+            const it = items[i];
+            it.y += it.speed;
+            it.wobble += it.wobbleSpeed;
+            const wx = Math.sin(it.wobble) * 1.2;
+            it.x += wx;
+
+            const playerY = H - 50;
+            if (it.y + it.size / 2 >= playerY - 18 && it.y - it.size / 2 <= playerY + 18 &&
+                Math.abs(it.x - player.x) < player.w / 2 + it.size / 2) {
+                if (it.food.hazard) {
+                    lives--; combo = 0;
+                    shakeTime = 12; shakeIntensity = 6;
+                    spawnParticles(it.x, it.y, '#e53935', 8);
+                    addFloatText(it.x, it.y - 20, '-1 ❤️', '#e53935');
+                    MakauSound.hazard();
+                    updateHUD();
+                    if (lives <= 0) { endGame(); return; }
+                } else {
+                    let pts = it.food.pts;
+                    combo++;
+                    if (combo > bestCombo) bestCombo = combo;
+                    let bonus = Math.floor(combo / 5);
+                    pts += bonus;
+                    score += pts;
+                    caught++;
+                    spawnParticles(it.x, it.y, it.food.glow, it.food.pts >= 4 ? 15 : 6);
+                    const btxt = bonus > 0 ? '+' + pts + ' (🔥+' + bonus + ')' : '+' + pts;
+                    addFloatText(it.x, it.y - 20, btxt, it.food.glow);
+                    if (it.food.pts >= 5) MakauSound.golden();
+                    else if (it.food.pts >= 3) MakauSound.rare();
+                    else MakauSound.catch();
+                    if (combo > 0 && combo % 5 === 0) MakauSound.combo();
+                    if (caught % 10 === 0) { baseSpeed += 0.4; if (spawnInterval > 22) spawnInterval -= 2; }
+                    updateHUD();
+                }
+                items.splice(i, 1);
+                continue;
+            }
+            if (it.y > H + 30) {
+                if (!it.food.hazard) { combo = 0; MakauSound.miss(); }
+                items.splice(i, 1);
+                updateHUD();
+            }
+        }
+
+        // Update particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 0.025;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        // Update float texts
+        for (let i = floatTexts.length - 1; i >= 0; i--) {
+            const f = floatTexts[i];
+            f.y += f.vy; f.life -= 0.02;
+            if (f.life <= 0) floatTexts.splice(i, 1);
+        }
+    }
+
+    function draw() {
+        ctx.save();
+        // Screen shake
+        if (shakeTime > 0) {
+            const dx = (Math.random() - 0.5) * shakeIntensity;
+            const dy = (Math.random() - 0.5) * shakeIntensity;
+            ctx.translate(dx, dy);
+        }
+
+        // Sky gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#0a1f14');
+        grad.addColorStop(0.6, '#1b3a2d');
+        grad.addColorStop(1, '#2d5a45');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Grass ground
+        ctx.fillStyle = '#1e5035';
+        ctx.fillRect(0, H - 32, W, 32);
+        ctx.fillStyle = '#276840';
+        for (let gx = 0; gx < W; gx += 12) {
+            ctx.fillRect(gx, H - 32, 2, 6 + Math.sin(gx * 0.3) * 3);
+        }
+
+        // Items with glow
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const it of items) {
+            if (it.food.pts >= 4 || it.food.hazard) {
+                ctx.shadowColor = it.food.glow;
+                ctx.shadowBlur = it.food.pts >= 5 ? 18 : 10;
+            }
+            ctx.font = '30px serif';
+            ctx.fillText(it.food.emoji, it.x, it.y);
+            ctx.shadowBlur = 0;
+        }
+
+        // Particles
+        for (const p of particles) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Float texts
+        ctx.font = 'bold 16px "Segoe UI", sans-serif';
+        for (const f of floatTexts) {
+            ctx.globalAlpha = f.life;
+            ctx.fillStyle = f.color;
+            ctx.fillText(f.text, f.x, f.y);
+        }
+        ctx.globalAlpha = 1;
+
+        // Player bowl with glow
+        if (combo >= 5) {
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 14;
+        } else if (combo >= 3) {
+            ctx.shadowColor = '#ff9800';
+            ctx.shadowBlur = 8;
+        }
+        ctx.font = '42px serif';
+        ctx.fillText('🥣', player.x, H - 50);
+        ctx.shadowBlur = 0;
+
+        // HUD on canvas
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('← → or swipe to move', 10, H - 8);
+
+        // Combo fire on canvas
+        if (combo >= 3) {
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 15px "Segoe UI", sans-serif';
+            ctx.fillStyle = combo >= 10 ? '#ffd700' : combo >= 5 ? '#ff9800' : '#4caf50';
+            ctx.fillText('🔥 COMBO x' + combo, W / 2, 22);
+        }
+
+        ctx.restore();
+    }
+
+    function endGame() {
+        gameOver = true;
+        MakauSound.gameOver();
+        document.getElementById('gameArea').style.display = 'none';
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('finalCaught').textContent = caught;
+        document.getElementById('finalBest').textContent = bestCombo;
+        document.getElementById('goEmoji').textContent = score >= 20 ? '🏆' : score >= 10 ? '🎉' : score >= 5 ? '👍' : '😅';
+        document.getElementById('gameOverScreen').style.display = 'block';
+
+        if (score > 0) {
+            ((window.MakauSecurity && MakauSecurity.csrfFetch) ? MakauSecurity.csrfFetch : fetch)('/FoodCatch/SubmitScore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ score: score })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    currentBalance = data.totalPoints;
+                    document.getElementById('pointsMsg').textContent =
+                        '+' + data.pointsEarned + ' earned! Total: ' + data.totalPoints + ' pts';
+                    document.getElementById('goBalance').textContent = data.totalPoints;
+                }
+            })
+            .catch(() => {});
+        } else {
+            document.getElementById('pointsMsg').textContent = 'No points earned this round.';
+            document.getElementById('goBalance').textContent = currentBalance;
+        }
+    }
+
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+})();
+</script>
+}

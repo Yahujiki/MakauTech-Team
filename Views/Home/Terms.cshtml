@@ -1,0 +1,530 @@
+@{
+    ViewData["Title"] = "Terms of Service";
+}
+
+@section Styles {
+<style>
+    body { background: #030d06 !important; }
+    .main-content { background: #030d06; }
+
+    /* ============ LAYOUT ============ */
+    .lg-page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+        color: #e5e7eb;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+    }
+
+    /* ============ HEADER ============ */
+    .lg-header {
+        background: linear-gradient(135deg, #052e1a, #0a3d24 50%, #082314);
+        border: 1px solid rgba(16,185,129,0.18);
+        border-radius: 20px;
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .lg-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 80% at 100% 0%, rgba(16,185,129,0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .lg-header-inner { position: relative; z-index: 1; }
+    .lg-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(16,185,129,0.12);
+        border: 1px solid rgba(16,185,129,0.32);
+        color: #6ee7b7;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        margin-bottom: 1rem;
+    }
+    .lg-title {
+        font-size: clamp(1.85rem, 4vw, 2.7rem);
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        color: #ffffff;
+        margin: 0 0 0.5rem;
+        line-height: 1.1;
+    }
+    .lg-subtitle {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+    .lg-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.55);
+    }
+    .lg-meta-item strong { color: #6ee7b7; font-weight: 700; }
+    .lg-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    .lg-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.06);
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+    .lg-btn:hover { background: rgba(16,185,129,0.18); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
+    .lg-btn--primary {
+        background: linear-gradient(135deg,#10b981,#059669);
+        border-color: transparent;
+        color: #ffffff;
+    }
+    .lg-btn--primary:hover { filter: brightness(1.1); }
+
+    /* ============ TWO-COLUMN BODY ============ */
+    .lg-body {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    @@media (max-width: 980px) {
+        .lg-body { grid-template-columns: 1fr; }
+        .lg-toc { position: static !important; }
+    }
+
+    /* ============ TABLE OF CONTENTS ============ */
+    .lg-toc {
+        position: sticky;
+        top: 1.5rem;
+        background: #0a1812;
+        border: 1px solid rgba(16,185,129,0.15);
+        border-radius: 16px;
+        padding: 1.25rem;
+        font-size: 0.9rem;
+    }
+    .lg-toc-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #6ee7b7;
+        margin: 0 0 0.85rem;
+    }
+    .lg-toc ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: toc;
+    }
+    .lg-toc li {
+        counter-increment: toc;
+        margin: 0;
+    }
+    .lg-toc a {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: 8px;
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        line-height: 1.35;
+        transition: all 0.15s;
+    }
+    .lg-toc a::before {
+        content: counter(toc, decimal-leading-zero);
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: rgba(110,231,183,0.7);
+        flex-shrink: 0;
+    }
+    .lg-toc a:hover { background: rgba(16,185,129,0.1); color: #ffffff; }
+    .lg-toc a.is-active { background: rgba(16,185,129,0.15); color: #6ee7b7; font-weight: 700; }
+
+    /* ============ MAIN CONTENT ============ */
+    .lg-content {
+        background: #0a1812;
+        border: 1px solid rgba(16,185,129,0.12);
+        border-radius: 16px;
+        padding: 2.5rem 2.75rem 3rem;
+    }
+    .lg-section { margin-bottom: 2.25rem; scroll-margin-top: 1.5rem; }
+    .lg-section:last-child { margin-bottom: 0; }
+    .lg-section-num {
+        display: inline-block;
+        background: rgba(16,185,129,0.12);
+        color: #6ee7b7;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+        margin-bottom: 0.6rem;
+    }
+    .lg-h2 {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.015em;
+        margin: 0 0 1rem;
+        line-height: 1.25;
+    }
+    .lg-content p {
+        color: rgba(255,255,255,0.75);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        margin: 0 0 0.85rem;
+    }
+    .lg-content p:last-child { margin-bottom: 0; }
+    .lg-content ul {
+        margin: 0.5rem 0 1rem;
+        padding-left: 1.2rem;
+        color: rgba(255,255,255,0.75);
+    }
+    .lg-content li { line-height: 1.7; margin-bottom: 0.35rem; }
+    .lg-content strong { color: #ffffff; font-weight: 700; }
+    .lg-content a { color: #6ee7b7; text-decoration: none; border-bottom: 1px solid rgba(110,231,183,0.4); }
+    .lg-content a:hover { border-bottom-color: #6ee7b7; }
+    .lg-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(16,185,129,0.25), transparent);
+        margin: 2rem 0;
+        border: 0;
+    }
+
+    /* Callout boxes */
+    .lg-callout {
+        background: rgba(16,185,129,0.06);
+        border-left: 3px solid #10b981;
+        padding: 0.9rem 1.1rem;
+        border-radius: 0 10px 10px 0;
+        margin: 0.85rem 0;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.78);
+    }
+    .lg-callout--warn {
+        background: rgba(245,158,11,0.06);
+        border-left-color: #f59e0b;
+    }
+    .lg-callout strong { display: block; margin-bottom: 0.25rem; color: #ffffff; }
+
+    /* Print styles */
+    @@media print {
+        body, .main-content { background: #ffffff !important; }
+        .lg-page, .lg-content, .lg-header, .lg-toc { color: #111 !important; background: #fff !important; border: none !important; }
+        .lg-toc, .lg-actions { display: none !important; }
+        .lg-body { grid-template-columns: 1fr !important; }
+        .lg-h2, .lg-title { color: #111 !important; }
+        .lg-content p, .lg-content ul { color: #333 !important; }
+    }
+</style>
+}
+
+<div class="lg-page">
+
+    <!-- ============ HEADER ============ -->
+    <header class="lg-header">
+        <div class="lg-header-inner">
+            <span class="lg-eyebrow">📋 Legal · Terms of Service</span>
+            <h1 class="lg-title">Terms of Service</h1>
+            <p class="lg-subtitle">
+                These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of the MakauTech platform.
+                Please read them carefully before creating an account or using the Service.
+            </p>
+            <div class="lg-meta-row">
+                <span class="lg-meta-item"><strong>Effective Date:</strong> 1 April 2026</span>
+                <span class="lg-meta-item"><strong>Last Updated:</strong> 28 April 2026</span>
+                <span class="lg-meta-item"><strong>Version:</strong> 2026-04</span>
+                <span class="lg-meta-item"><strong>Jurisdiction:</strong> Sarawak, Malaysia</span>
+            </div>
+            <div class="lg-actions">
+                <button type="button" class="lg-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+                <a class="lg-btn" asp-action="Privacy" asp-controller="Home">🔒 Privacy Policy</a>
+                <a class="lg-btn lg-btn--primary" asp-action="Settings" asp-controller="Home">← Back to Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ BODY ============ -->
+    <div class="lg-body">
+
+        <!-- ============ TABLE OF CONTENTS ============ -->
+        <aside class="lg-toc" aria-label="Table of contents">
+            <p class="lg-toc-title">Contents</p>
+            <ol>
+                <li><a href="#s1" class="lg-toc-link">Definitions</a></li>
+                <li><a href="#s2" class="lg-toc-link">Acceptance &amp; Eligibility</a></li>
+                <li><a href="#s3" class="lg-toc-link">Account Registration &amp; Security</a></li>
+                <li><a href="#s4" class="lg-toc-link">Permitted &amp; Prohibited Use</a></li>
+                <li><a href="#s5" class="lg-toc-link">User Content &amp; Reviews</a></li>
+                <li><a href="#s6" class="lg-toc-link">Points, Levels &amp; Games</a></li>
+                <li><a href="#s7" class="lg-toc-link">Intellectual Property</a></li>
+                <li><a href="#s8" class="lg-toc-link">Privacy Reference</a></li>
+                <li><a href="#s9" class="lg-toc-link">Disclaimers</a></li>
+                <li><a href="#s10" class="lg-toc-link">Limitation of Liability</a></li>
+                <li><a href="#s11" class="lg-toc-link">Indemnification</a></li>
+                <li><a href="#s12" class="lg-toc-link">Termination &amp; Suspension</a></li>
+                <li><a href="#s13" class="lg-toc-link">Changes to These Terms</a></li>
+                <li><a href="#s14" class="lg-toc-link">Governing Law &amp; Disputes</a></li>
+                <li><a href="#s15" class="lg-toc-link">Contact</a></li>
+            </ol>
+        </aside>
+
+        <!-- ============ MAIN CONTENT ============ -->
+        <main class="lg-content">
+
+            <section class="lg-section" id="s1">
+                <span class="lg-section-num">SECTION 01</span>
+                <h2 class="lg-h2">Definitions</h2>
+                <p>For the purposes of these Terms, the following definitions apply:</p>
+                <ul>
+                    <li><strong>&ldquo;MakauTech&rdquo;</strong>, <strong>&ldquo;we&rdquo;</strong>, <strong>&ldquo;us&rdquo;</strong>, or <strong>&ldquo;our&rdquo;</strong> refers to the MakauTech academic platform operated as a coursework project at the University of Technology Sarawak (UTS).</li>
+                    <li><strong>&ldquo;Service&rdquo;</strong> means the MakauTech website, web application, related interfaces, and gamified features made available through this platform.</li>
+                    <li><strong>&ldquo;User&rdquo;</strong>, <strong>&ldquo;you&rdquo;</strong>, or <strong>&ldquo;your&rdquo;</strong> refers to any individual who accesses or uses the Service, whether as a registered account holder or as a guest visitor.</li>
+                    <li><strong>&ldquo;Content&rdquo;</strong> means text, images, reviews, comments, ratings, profile data, and other materials posted, uploaded, or generated through the Service.</li>
+                </ul>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s2">
+                <span class="lg-section-num">SECTION 02</span>
+                <h2 class="lg-h2">Acceptance &amp; Eligibility</h2>
+                <p>By creating an account, signing in, or otherwise using the Service, you confirm that you have read, understood, and agree to be bound by these Terms and the linked <a asp-action="Privacy" asp-controller="Home">Privacy Policy</a>. If you do not agree, you must stop using the Service.</p>
+                <p>You must be at least <strong>13 years of age</strong> to create an account. Users under the age of 18 should obtain consent from a parent or legal guardian before using the Service.</p>
+                <div class="lg-callout">
+                    <strong>Academic Notice</strong>
+                    MakauTech is operated as a student coursework project at UTS. Service availability, features, and content may change at any time without prior notice.
+                </div>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s3">
+                <span class="lg-section-num">SECTION 03</span>
+                <h2 class="lg-h2">Account Registration &amp; Security</h2>
+                <p>To access certain features, you must register an account by providing a valid name, email address, and a password. You agree that:</p>
+                <ul>
+                    <li>The information you provide is accurate, current, and complete.</li>
+                    <li>You are solely responsible for maintaining the confidentiality of your password.</li>
+                    <li>You are responsible for all activities that occur under your account.</li>
+                    <li>You must notify us immediately of any unauthorised access or suspected security breach.</li>
+                </ul>
+                <p>We hash all stored passwords using <strong>BCrypt</strong> with a work factor of 12. Repeated failed login attempts will trigger an automatic <strong>15-minute account lockout</strong> after the fifth consecutive failure to mitigate brute-force attacks.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s4">
+                <span class="lg-section-num">SECTION 04</span>
+                <h2 class="lg-h2">Permitted &amp; Prohibited Use</h2>
+                <p>You may use the Service only for lawful, personal, non-commercial purposes consistent with these Terms. You agree <strong>not</strong> to:</p>
+                <ul>
+                    <li>Submit false, misleading, defamatory, hateful, harassing, or unlawful Content;</li>
+                    <li>Impersonate any person or entity or misrepresent your affiliation;</li>
+                    <li>Attempt to bypass authentication, rate limits, or other security mechanisms;</li>
+                    <li>Reverse-engineer, scrape, or extract data en masse from the Service without written permission;</li>
+                    <li>Upload viruses, malware, or any code designed to damage the Service or its users;</li>
+                    <li>Manipulate scoring, points, leaderboards, or game outcomes through automated tools, scripts, or exploits;</li>
+                    <li>Use the Service in any way that violates Malaysian law or applicable international law.</li>
+                </ul>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s5">
+                <span class="lg-section-num">SECTION 05</span>
+                <h2 class="lg-h2">User Content &amp; Reviews</h2>
+                <p>You retain ownership of the Content you submit, but you grant MakauTech a <strong>non-exclusive, royalty-free, worldwide licence</strong> to host, display, reproduce, and distribute your Content within the Service for the purpose of operating, promoting, and improving the platform during its academic lifespan.</p>
+                <p>You represent and warrant that:</p>
+                <ul>
+                    <li>You own or have the necessary rights to all Content you submit;</li>
+                    <li>Your Content does not infringe any third party's intellectual property, privacy, or publicity rights;</li>
+                    <li>Your reviews reflect honest, good-faith opinions based on personal experience.</li>
+                </ul>
+                <p>We reserve the right, at our sole discretion, to remove or edit Content that violates these Terms or that we consider inappropriate, without prior notice.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s6">
+                <span class="lg-section-num">SECTION 06</span>
+                <h2 class="lg-h2">Points, Levels &amp; Games</h2>
+                <p>Points, levels, badges, leaderboards, and gamified mini-games are virtual engagement features. They:</p>
+                <ul>
+                    <li>Have <strong>no monetary or cash value</strong>;</li>
+                    <li>Cannot be exchanged, sold, or transferred to other users;</li>
+                    <li>May be reset, recalculated, or removed at any time without compensation;</li>
+                    <li>Are subject to anti-cheat enforcement and may be revoked in cases of abuse.</li>
+                </ul>
+                <p>Game entry costs (e.g., point fees) and reward formulas may change for academic, balancing, or maintenance reasons.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s7">
+                <span class="lg-section-num">SECTION 07</span>
+                <h2 class="lg-h2">Intellectual Property</h2>
+                <p>All trademarks, logos, source code, design elements, and original content of the Service (excluding User Content) are the intellectual property of the project author and are protected by Malaysian and international copyright laws.</p>
+                <p>You may not copy, reproduce, distribute, or create derivative works from the Service without express written permission, except where permitted by fair-dealing provisions of the Malaysian Copyright Act 1987.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s8">
+                <span class="lg-section-num">SECTION 08</span>
+                <h2 class="lg-h2">Privacy Reference</h2>
+                <p>Your use of the Service is also governed by our <a asp-action="Privacy" asp-controller="Home">Privacy Policy</a>, which describes how we collect, use, store, and protect your personal data in accordance with the Personal Data Protection Act 2010 (Malaysia).</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s9">
+                <span class="lg-section-num">SECTION 09</span>
+                <h2 class="lg-h2">Disclaimers</h2>
+                <p>THE SERVICE IS PROVIDED ON AN <strong>&ldquo;AS IS&rdquo;</strong> AND <strong>&ldquo;AS AVAILABLE&rdquo;</strong> BASIS WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED. We do not guarantee that:</p>
+                <ul>
+                    <li>The Service will always be available, secure, error-free, or uninterrupted;</li>
+                    <li>Place listings, ratings, or descriptions are exhaustive, current, or accurate;</li>
+                    <li>Defects will be corrected within a specific timeframe.</li>
+                </ul>
+                <div class="lg-callout lg-callout--warn">
+                    <strong>Travel Advisory</strong>
+                    Always verify operating hours, addresses, prices, and safety conditions of any listed location independently before visiting. Travel and visits are undertaken entirely at your own risk.
+                </div>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s10">
+                <span class="lg-section-num">SECTION 10</span>
+                <h2 class="lg-h2">Limitation of Liability</h2>
+                <p>To the maximum extent permitted by Malaysian law, MakauTech, its operators, contributors, and the University of Technology Sarawak <strong>shall not be liable</strong> for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+                <ul>
+                    <li>Loss of profits, revenue, data, or goodwill;</li>
+                    <li>Personal injury or property damage arising from reliance on Content;</li>
+                    <li>Damages resulting from third-party services, links, or content;</li>
+                    <li>Damages resulting from unauthorised access to your account.</li>
+                </ul>
+                <p>In no event shall our total aggregate liability exceed <strong>fifty Malaysian Ringgit (MYR 50.00)</strong> or the amount you paid to access the Service in the past twelve (12) months, whichever is greater.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s11">
+                <span class="lg-section-num">SECTION 11</span>
+                <h2 class="lg-h2">Indemnification</h2>
+                <p>You agree to indemnify, defend, and hold harmless MakauTech and its operators from any claims, damages, losses, or expenses (including reasonable legal fees) arising from your violation of these Terms, your Content, or your misuse of the Service.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s12">
+                <span class="lg-section-num">SECTION 12</span>
+                <h2 class="lg-h2">Termination &amp; Suspension</h2>
+                <p>We may suspend or terminate your account at any time, without prior notice, if we determine in good faith that you have violated these Terms, abused the Service, or posed a security risk to other users.</p>
+                <p>You may close your account at any time by contacting your project supervisor or the course coordinator. Upon termination, your right to use the Service ceases immediately, although certain provisions (Sections 7, 9, 10, 11, and 14) shall survive.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s13">
+                <span class="lg-section-num">SECTION 13</span>
+                <h2 class="lg-h2">Changes to These Terms</h2>
+                <p>We may revise these Terms from time to time to reflect changes in features, regulations, or coursework requirements. The &ldquo;Last Updated&rdquo; date and version number at the top of this page will always indicate the current revision.</p>
+                <p>Material changes will be communicated through an in-app notice or by requiring re-acceptance at next sign-in. Continued use of the Service after changes take effect constitutes your acceptance of the revised Terms.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s14">
+                <span class="lg-section-num">SECTION 14</span>
+                <h2 class="lg-h2">Governing Law &amp; Dispute Resolution</h2>
+                <p>These Terms are governed by and construed in accordance with the laws of <strong>Malaysia</strong>, without regard to its conflict-of-laws principles.</p>
+                <p>Any dispute, controversy, or claim arising out of or relating to these Terms shall first be addressed through good-faith informal negotiation. If unresolved, disputes shall be submitted to the exclusive jurisdiction of the courts of <strong>Sarawak, Malaysia</strong>.</p>
+            </section>
+
+            <hr class="lg-divider" />
+
+            <section class="lg-section" id="s15">
+                <span class="lg-section-num">SECTION 15</span>
+                <h2 class="lg-h2">Contact</h2>
+                <p>For questions about these Terms, to report a violation, or to submit a legal notice, please use one of the channels below.</p>
+
+                <ul>
+                    <li><strong>Legal &amp; Compliance:</strong> <a href="mailto:legal@makautech.com">legal@makautech.com</a> &mdash; legal notices, takedown requests, compliance enquiries</li>
+                    <li><strong>General Support:</strong> <a href="mailto:support@makautech.com">support@makautech.com</a> &mdash; account issues, technical problems, general questions</li>
+                    <li><strong>Privacy:</strong> <a href="mailto:privacy@makautech.com">privacy@makautech.com</a> &mdash; PDPA requests &amp; data protection enquiries</li>
+                    <li><strong>Web:</strong> <a href="https://makautech.com" target="_blank" rel="noopener">makautech.com</a></li>
+                </ul>
+
+                <div class="lg-callout">
+                    <strong>Response Time</strong>
+                    We aim to acknowledge enquiries within <strong>3 business days</strong> and provide a substantive response within a reasonable time depending on the nature of the request.
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+
+</div>
+
+@section Scripts {
+<script>
+    // Highlight current TOC section while scrolling
+    (function () {
+        var links = document.querySelectorAll('.lg-toc-link');
+        var sections = Array.prototype.map.call(links, function (a) {
+            var id = a.getAttribute('href').slice(1);
+            return document.getElementById(id);
+        });
+
+        function onScroll() {
+            var fromTop = window.scrollY + 80;
+            var activeIdx = 0;
+            for (var i = 0; i < sections.length; i++) {
+                if (sections[i] && sections[i].offsetTop <= fromTop) activeIdx = i;
+            }
+            links.forEach(function (a, i) {
+                a.classList.toggle('is-active', i === activeIdx);
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        // Smooth-scroll TOC anchors
+        links.forEach(function (a) {
+            a.addEventListener('click', function (ev) {
+                var id = a.getAttribute('href').slice(1);
+                var target = document.getElementById(id);
+                if (target) { ev.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            });
+        });
+    })();
+</script>
+}

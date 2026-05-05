@@ -1,0 +1,30 @@
+﻿@model List<MakauTech.Models.Achievement>
+@{
+    ViewData["Title"] = "Achievements";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+<div class="admin-page-header">
+    <h2>Achievements</h2>
+    <a asp-action="CreateAchievement" class="admin-btn">+ Add Achievement</a>
+</div>
+<table class="admin-table">
+    <thead><tr><th>Icon</th><th>Name</th><th>Description</th><th>Pts Required</th><th>Places Required</th><th>Actions</th></tr></thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.Icon</td>
+                <td>@a.Name</td>
+                <td>@a.Description</td>
+                <td>@a.PointsRequired</td>
+                <td>@a.PlacesRequired</td>
+                <td>
+                    <form method="post" asp-action="DeleteAchievement" style="display:inline">
+                        <input type="hidden" name="id" value="@a.Id" />
+                        <button type="submit" class="admin-btn-sm admin-btn-danger" onclick="return confirm('Delete?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

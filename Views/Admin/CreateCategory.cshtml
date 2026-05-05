@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Create Category";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+<h2>Add New Category</h2>
+<form method="post" asp-action="CreateCategory" class="admin-form">
+    <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required /></div>
+    <div class="form-group"><label>Icon (emoji)</label><input type="text" name="icon" class="form-control" placeholder="🌿" required /></div>
+    <button type="submit" class="admin-btn">Save</button>
+    <a asp-action="Categories" class="admin-btn" style="background:#666">Cancel</a>
+</form>

@@ -1,0 +1,27 @@
+﻿@model List<MakauTech.Models.Review>
+@{
+    ViewData["Title"] = "Reviews";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+<h2>Reviews</h2>
+<table class="admin-table">
+    <thead><tr><th>User</th><th>Place</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.UserName</td>
+                <td>@r.Place?.Name</td>
+                <td>⭐ @r.Rating</td>
+                <td>@r.Comment</td>
+                <td>@r.CreatedAt.ToString("dd MMM yyyy")</td>
+                <td>
+                    <form method="post" asp-action="DeleteReview" style="display:inline">
+                        <input type="hidden" name="id" value="@r.Id" />
+                        <button type="submit" class="admin-btn-sm admin-btn-danger" onclick="return confirm('Delete?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

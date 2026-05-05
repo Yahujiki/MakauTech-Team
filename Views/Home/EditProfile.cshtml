@@ -1,0 +1,15 @@
+﻿@model MakauTech.Models.User
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Edit Profile</h2>
+        <form method="post" asp-action="EditProfile">
+            <div class="form-group"><label>Name</label><input type="text" name="name" value="@Model.Name" class="form-control" required /></div>
+            <div class="form-group"><label>Email</label><input type="email" name="email" value="@Model.Email" class="form-control" required /></div>
+            <button type="submit" class="btn-primary btn-full">Save Changes</button>
+            <a asp-action="Profile" class="btn-secondary btn-full" style="margin-top:0.5rem">Cancel</a>
+        </form>
+    </div>
+</div>

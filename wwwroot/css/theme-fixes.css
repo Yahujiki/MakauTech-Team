@@ -1,0 +1,298 @@
+/* ════════════════════════════════════════════════════════════════
+   theme-fixes.css — site-wide light/dark contrast safety net
+   Loaded LAST so it overrides hardcoded colours in older sections.
+   Strategy: when [data-theme="dark"] is set, swap any white/near-white
+   backgrounds and dark-on-dark text to readable dark-mode equivalents.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── Dark-mode overrides for the landing page (Home/Index) ──── */
+[data-theme="dark"] .lp-section--alt {
+    background: #0d141b;
+}
+[data-theme="dark"] .lp-stats-bar {
+    background: #0d141b;
+    border-bottom-color: rgba(255,255,255,0.06);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.30);
+}
+[data-theme="dark"] .lp-stat {
+    border-right-color: rgba(255,255,255,0.06);
+}
+[data-theme="dark"] .lp-stat-num {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .lp-stat-num span {
+    color: #4ade80;
+}
+[data-theme="dark"] .lp-stat-label {
+    color: rgba(226,232,240,0.55);
+}
+[data-theme="dark"] .lp-section-h2 {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .lp-section-sub {
+    color: rgba(226,232,240,0.6);
+}
+[data-theme="dark"] .lp-section-kicker {
+    color: #4ade80;
+}
+[data-theme="dark"] .lp-why-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+[data-theme="dark"] .lp-why-card h3 {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .lp-why-card p {
+    color: rgba(226,232,240,0.7);
+}
+[data-theme="dark"] .lp-why-tag {
+    color: rgba(226,232,240,0.55);
+}
+[data-theme="dark"] .lp-why-card--heritage .lp-why-icon-wrap { background: rgba(245,158,11,0.10); }
+[data-theme="dark"] .lp-why-card--food     .lp-why-icon-wrap { background: rgba(244,63,94,0.10); }
+[data-theme="dark"] .mk-btn-outline-dark {
+    color: rgba(226,232,240,0.85) !important;
+    border-color: rgba(255,255,255,0.18);
+}
+[data-theme="dark"] .mk-btn-outline-dark:hover {
+    background: rgba(34,197,94,0.10);
+    border-color: #22c55e;
+}
+[data-theme="dark"] .lp-video-caption {
+    color: rgba(226,232,240,0.55);
+}
+
+/* Featured/most-visited section — old .place-card class */
+[data-theme="dark"] .lp-featured-grid .place-card,
+[data-theme="dark"] .place-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+[data-theme="dark"] .place-card h3,
+[data-theme="dark"] .place-info h3,
+[data-theme="dark"] .place-name {
+    color: #f1f5f9 !important;
+}
+[data-theme="dark"] .place-card p,
+[data-theme="dark"] .place-desc,
+[data-theme="dark"] .place-location {
+    color: rgba(226,232,240,0.65);
+}
+
+/* mk-place-card (the new featured-spot card) — fix white-on-white in dark mode */
+[data-theme="dark"] .mk-place-card {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+[data-theme="dark"] .mk-place-card:hover {
+    border-color: rgba(34,197,94,0.40);
+    background: rgba(255,255,255,0.05) !important;
+}
+[data-theme="dark"] .mk-place-card-name { color: #f1f5f9 !important; }
+[data-theme="dark"] .mk-place-card-loc  { color: rgba(226,232,240,0.65); }
+[data-theme="dark"] .mk-place-card-meta {
+    color: rgba(226,232,240,0.7);
+    border-top-color: rgba(255,255,255,0.07);
+}
+[data-theme="dark"] .mk-place-card-meta b { color: #4ade80; }
+[data-theme="dark"] .mk-place-card-cat {
+    background: rgba(15,23,42,0.85);
+    color: #6ee7b7;
+}
+
+/* Generic safety: any section using utility text-dark / bg-white */
+[data-theme="dark"] .text-dark { color: #f1f5f9 !important; }
+[data-theme="dark"] .bg-white  { background: #131a22 !important; }
+
+/* About / Discover Sibu hero region — keep readable on both */
+[data-theme="light"] .lp-discover h2,
+[data-theme="light"] .discover-h2 { color: #111827; }
+[data-theme="dark"]  .lp-discover h2,
+[data-theme="dark"]  .discover-h2 { color: #f1f5f9; }
+
+/* ─── Light-mode safety: prevent stark white-on-white forms ─── */
+[data-theme="light"] body { background: var(--bg, #f0f5f2); }
+
+/* ════════════════════════════════════════════════════════════════
+   TOP LOADING BAR — appears on internal link click + page nav
+   Pure CSS animation, controlled by JS class swap.
+   ════════════════════════════════════════════════════════════════ */
+#mk-progress {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 3px; z-index: 99999;
+    background: transparent;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+#mk-progress::before {
+    content: "";
+    display: block; height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #6ee7b7 100%);
+    box-shadow: 0 0 10px rgba(34,197,94,0.65),
+                0 0 4px rgba(74,222,128,0.85);
+    transition: width 0.3s ease-out;
+    border-radius: 0 3px 3px 0;
+}
+#mk-progress.is-loading {
+    opacity: 1;
+}
+#mk-progress.is-loading::before {
+    /* climb to ~70% over 1.4s, hold (waits for navigation),
+       then JS bumps to 100% on hide */
+    animation: mk-prog-climb 1.4s cubic-bezier(.22,.61,.36,1) forwards;
+}
+#mk-progress.is-done::before {
+    width: 100% !important;
+    animation: none;
+}
+#mk-progress.is-done {
+    opacity: 0;
+    transition: opacity 0.45s ease 0.1s;
+}
+@keyframes mk-prog-climb {
+    0%   { width: 0%; }
+    35%  { width: 35%; }
+    70%  { width: 60%; }
+    100% { width: 78%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #mk-progress.is-loading::before { animation-duration: 0.6s; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PIXEL-ART F5 LOADING SPLASH
+   Fullscreen retro 8-bit loader — shows on F5 / first visit / hard reload.
+   Hidden after ~1.4s, fades to reveal site. Anti-FOUC via inline check.
+   ════════════════════════════════════════════════════════════════ */
+
+#mk-splash {
+    position: fixed; inset: 0; z-index: 999999;
+    background: radial-gradient(ellipse at center, #0d1d2a 0%, #07111a 70%);
+    display: grid; place-items: center;
+    color: #e8f6ec;
+    font-family: 'VT323', 'Press Start 2P', 'Courier New', monospace;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    transition: opacity 0.4s ease;
+    text-align: center;
+}
+#mk-splash.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Centred stack — keeps everything column-aligned */
+.mk-splash-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    width: min(540px, 86vw);
+}
+
+/* Brand image (real logo) */
+.mk-splash-brand {
+    width: clamp(140px, 22vw, 220px);
+    height: auto;
+    image-rendering: auto;
+    filter: drop-shadow(0 4px 18px rgba(34,197,94,0.32));
+    animation: mk-splash-pulse 2s ease-in-out infinite;
+}
+
+/* Pixel-art bar */
+.mk-splash-bar-wrap {
+    position: relative;
+    width: clamp(280px, 50vw, 480px);
+    height: 32px;
+    background: #1f2730;
+    border: 4px solid #2c3744;
+    border-radius: 4px;
+    box-shadow:
+        inset 0 0 0 2px #0a141d,
+        0 0 0 2px #0a141d,
+        4px 4px 0 #000;
+    padding: 0;
+    overflow: hidden;
+    margin: 0 auto;
+}
+.mk-splash-bar-fill {
+    position: absolute; inset: 0;
+    width: 0%;
+    background:
+        linear-gradient(180deg,
+            #6ee7b7 0%, #6ee7b7 22%,
+            #22c55e 23%, #22c55e 78%,
+            #166534 79%, #166534 100%);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18);
+    transition: width 0.18s linear;
+}
+/* shine highlight running across bar */
+.mk-splash-bar-shine {
+    position: absolute;
+    top: 4px; left: 0; height: 4px; width: 24px;
+    background: rgba(255,255,255,0.55);
+    animation: mk-splash-shine 1.2s linear infinite;
+}
+
+/* Status row — sits BELOW the bar */
+.mk-splash-status {
+    margin: 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 18px;
+    font-family: 'Press Start 2P', 'VT323', 'Courier New', monospace;
+    font-size: clamp(11px, 1.1vw, 14px);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #e8f6ec;
+}
+.mk-splash-status .mk-splash-pct {
+    color: #4ade80;
+    font-variant-numeric: tabular-nums;
+    min-width: 4ch; text-align: right;
+}
+.mk-splash-status.is-done {
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74,222,128,0.4);
+    animation: mk-splash-flash 0.4s steps(2) 2;
+}
+
+/* Tiny pixel character pacing the bar */
+.mk-splash-runner {
+    position: absolute; top: -34px; left: 0;
+    width: 24px; height: 28px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transform: translateX(-12px);
+    transition: left 0.18s linear;
+    image-rendering: pixelated;
+}
+
+@keyframes mk-splash-blink {
+    50% { opacity: 0.45; }
+}
+@keyframes mk-splash-flash {
+    50% { opacity: 0.4; }
+}
+@keyframes mk-splash-shine {
+    0%   { transform: translateX(-30px); opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateX(calc(100vw - 50px)); opacity: 0; }
+}
+@keyframes mk-splash-pulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 18px rgba(34,197,94,0.32)); }
+    50%      { transform: scale(1.04); filter: drop-shadow(0 6px 28px rgba(34,197,94,0.55)); }
+}
+
+/* Hide content underneath while splash is up (prevents flicker) */
+html.mk-splash-active body { overflow: hidden; }
+
+/* Reduced motion users still get a brief splash but no fanfare */
+@media (prefers-reduced-motion: reduce) {
+    .mk-splash-brand { animation: none; }
+    .mk-splash-bar-shine { display: none; }
+}

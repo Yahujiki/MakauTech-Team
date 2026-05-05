@@ -1,0 +1,59 @@
+@{
+    var ctrl = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string NavActive(string a) => ctrl.Equals(a, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — MakauTech Admin</title>
+    <link rel="icon" type="image/png" href="~/Images/icon.png" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/polish.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-polish.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-logo">
+                <img src="~/Images/icon.png" alt="" />
+                <div class="logo-text">
+                    <span><span class="logo-green">Makau</span><span class="logo-orange">Tech</span></span>
+                    <small>Admin Panel</small>
+                </div>
+            </div>
+            <nav class="admin-nav">
+                <a asp-controller="Admin" asp-action="Dashboard" class="@NavActive("Dashboard")">📊 Dashboard</a>
+                <a asp-controller="Admin" asp-action="Places" class="@NavActive("Places")">📍 Places</a>
+                <a asp-controller="Admin" asp-action="Categories" class="@NavActive("Categories")">🏷️ Categories</a>
+                <a asp-controller="Admin" asp-action="Achievements" class="@NavActive("Achievements")">🏅 Achievements</a>
+                <a asp-controller="Admin" asp-action="Reviews" class="@NavActive("Reviews")">💬 Reviews</a>
+                <a asp-controller="Admin" asp-action="Users" class="@NavActive("Users")">👥 Users</a>
+                <a asp-controller="Admin" asp-action="Updates" class="@NavActive("Updates")">📢 Updates</a>
+                <a asp-controller="Home" asp-action="Index" class="admin-back">← Back to Site</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <button type="button" class="admin-burger" id="adminBurger" onclick="document.body.classList.toggle('admin-sidebar-open')">☰</button>
+                <span>Welcome, <strong>@ViewBag.UserName</strong></span>
+                <a asp-controller="Home" asp-action="Logout">Logout</a>
+            </div>
+            <div class="admin-content">
+                @if (TempData["AdminSuccess"] != null)
+                {
+                    <div class="alert alert-success">✅ @TempData["AdminSuccess"]</div>
+                }
+                @if (TempData["AdminError"] != null)
+                {
+                    <div class="alert alert-error">❌ @TempData["AdminError"]</div>
+                }
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+    <div class="admin-sidebar-backdrop" id="adminBackdrop" onclick="document.body.classList.remove('admin-sidebar-open')"></div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

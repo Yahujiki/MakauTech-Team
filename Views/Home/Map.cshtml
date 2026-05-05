@@ -1,0 +1,94 @@
+@model List<MakauTech.Models.Place>
+@{
+    ViewData["Title"] = "Live Map";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <style>
+        #sibu-map { height: 560px; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 32px rgba(7,29,15,0.18); }
+        .map-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; padding: 1rem 0; font-size: 0.88rem; color: var(--text-light); }
+        .map-legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; }
+        .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important; }
+        .map-popup-name { font-weight: 800; font-size: 1rem; color: #071d0f; margin-bottom: 4px; }
+        .map-popup-cat { font-size: 0.82rem; background: #e8f5e9; color: #166534; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 6px; }
+        .map-popup-desc { font-size: 0.85rem; color: #555; margin-bottom: 8px; line-height: 1.5; }
+        .map-popup-link { display: inline-block; background: #22c55e; color: #fff !important; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+        .map-popup-link:hover { background: #16a34a; }
+    </style>
+}
+
+<section class="page-hero page-hero--compact" style="position:relative;">
+    <h1>🗺️ Sibu Live Map</h1>
+    <p>All @Model.Count tourist spots on one map — click a pin to see details and get directions.</p>
+</section>
+
+<div class="page-stack" style="padding-top:1.5rem;">
+    <div id="sibu-map"></div>
+    <div class="map-legend">
+        <span><span class="map-legend-dot" style="background:#22c55e;"></span> Nature</span>
+        <span><span class="map-legend-dot" style="background:#f59e0b;"></span> Heritage</span>
+        <span><span class="map-legend-dot" style="background:#ef4444;"></span> Food</span>
+        <span><span class="map-legend-dot" style="background:#6366f1;"></span> Adventure</span>
+        <span><span class="map-legend-dot" style="background:#0ea5e9;"></span> City</span>
+    </div>
+    <p style="font-size:0.85rem; color:var(--text-light); text-align:center; margin-top:0.5rem;">Map data © <a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent-hover);">OpenStreetMap</a> contributors</p>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+    (function () {
+        var map = L.map('sibu-map', { zoomControl: true }).setView([2.2950, 111.8195], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var categoryColors = { Nature:'#22c55e', Heritage:'#f59e0b', Food:'#ef4444', Adventure:'#6366f1', City:'#0ea5e9' };
+
+        function makeIcon(color) {
+            return L.divIcon({
+                className: '',
+                html: '<div style="width:20px;height:20px;background:' + color + ';border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+        }
+
+        var places = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(p => new {
+            p.Id, p.Name, p.Location,
+            Description = (p.Description != null && p.Description.Length > 100 ? p.Description.Substring(0, 100) + "…" : p.Description) ?? "",
+            Category = p.Category?.Name ?? "Other",
+            CategoryIcon = p.Category?.Icon ?? "📍",
+            Lat = p.Latitude,
+            Lng = p.Longitude
+        })));
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        places.forEach(function(p) {
+            var latlng = (p.Lat && p.Lng) ? [p.Lat, p.Lng] : null;
+            if (!latlng) latlng = [2.2950 + (Math.random() - 0.5) * 0.012, 111.8195 + (Math.random() - 0.5) * 0.012];
+            var color = categoryColors[p.Category] || '#555';
+            var id = parseInt(p.Id, 10) || 0;
+            var mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.Name + ' Sibu Sarawak');
+            var popup = '<div class="map-popup-name">' + escapeHtml(p.CategoryIcon) + ' ' + escapeHtml(p.Name) + '</div>'
+                + '<div class="map-popup-cat">' + escapeHtml(p.Category) + '</div>'
+                + '<p class="map-popup-desc">' + escapeHtml(p.Description) + '</p>'
+                + '<a href="/Place/Detail/' + id + '" class="map-popup-link" target="_blank" rel="noopener">View details</a>'
+                + ' <a href="' + escapeHtml(mapsUrl) + '" class="map-popup-link" style="background:#0ea5e9;" target="_blank" rel="noopener">Directions 🧭</a>';
+            L.marker(latlng, { icon: makeIcon(color) })
+             .addTo(map)
+             .bindPopup(popup, { maxWidth: 260 });
+        });
+    })();
+    </script>
+}

@@ -1,0 +1,102 @@
+@* Guided coachmarks tutorial (Clash-of-Clans style) — highlights real UI elements. *@
+<div id="mk-coach-overlay" style="position:fixed;inset:0;z-index:99994;display:none;">
+    <div id="mk-coach-dim" style="position:absolute;inset:0;background:rgba(2,6,23,0.68);"></div>
+    <div id="mk-coach-spot" style="position:absolute;border-radius:14px;box-shadow:0 0 0 3px rgba(34,197,94,0.95), 0 0 0 9999px rgba(2,6,23,0.68);transition:all .18s ease;"></div>
+    <div id="mk-coach-card" style="position:absolute;max-width:520px;width:min(520px,92vw);background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,0.45);overflow:hidden;border:1px solid rgba(16,185,129,0.15);">
+        <div style="display:flex;gap:12px;align-items:center;padding:14px 16px;background:linear-gradient(135deg,#071d0f,#0d3320);color:#fff;">
+            <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.12);display:grid;place-items:center;font-weight:900;font-size:20px;">🦢</div>
+            <div style="min-width:0;">
+                <div id="mk-coach-title" style="font-weight:900;font-size:1rem;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Welcome</div>
+                <div id="mk-coach-step" style="opacity:0.75;font-size:0.85rem;">Step 1 / 6</div>
+            </div>
+        </div>
+        <div style="padding:14px 16px;color:#111827;">
+            <div id="mk-coach-body" style="line-height:1.6;color:#374151;"></div>
+            <div id="mk-coach-ms" style="margin-top:6px;font-size:0.85rem;color:#059669;font-weight:800;"></div>
+            <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:12px;">
+                <button type="button" id="mk-coach-skip" style="border:none;background:transparent;color:#6b7280;font-weight:900;text-decoration:underline;cursor:pointer;">Skip</button>
+                <div style="display:flex;gap:10px;">
+                    <button type="button" id="mk-coach-prev" style="border:1px solid #e5e7eb;background:#fff;color:#111827;font-weight:900;border-radius:999px;padding:10px 14px;cursor:pointer;">Prev</button>
+                    <button type="button" id="mk-coach-next" style="border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:900;border-radius:999px;padding:10px 14px;cursor:pointer;box-shadow:0 10px 24px rgba(16,185,129,0.25);">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    function $(id) { return document.getElementById(id); }
+    var overlay = $('mk-coach-overlay');
+    var spot = $('mk-coach-spot');
+    var card = $('mk-coach-card');
+    if (!overlay || !spot || !card) return;
+
+    var steps = [
+        { sel: '#tut-nav-dashboard', title: 'Dashboard', body: 'This is your home hub — highlights, updates, and quick actions.', ms: 'Ini papan pemuka anda — ringkasan & tindakan pantas.' },
+        { sel: '#tut-nav-explore', title: 'Explore places', body: 'Browse places, read reviews, and like favourites.', ms: 'Terokai tempat, baca ulasan, dan like kegemaran.' },
+        { sel: '#tut-nav-games', title: 'Games hub', body: 'Play mini-games to earn points and climb the leaderboard.', ms: 'Main game untuk dapat mata & naik ranking.' },
+        { sel: 'a[href*=\"/Home/Profile\"], .sidebar-profile', title: 'Your profile', body: 'See badges, points, and your progress level here.', ms: 'Lihat lencana, mata, dan tahap anda di sini.' },
+        { sel: 'a[href*=\"/Home/Settings\"], a[href*=\"/Home/Settings\"]', title: 'Settings', body: 'Change your name, email, and profile picture.', ms: 'Tukar nama, emel, dan gambar profil.' },
+        { sel: '#riva-fab', title: 'Yenkah AI assistant', body: 'Tap here for tourism tips and quick help inside the site.', ms: 'Tekan sini untuk bantuan AI dan tips pelancongan.' }
+    ];
+
+    var i = 0;
+
+    function placeFor(target) {
+        var r = target.getBoundingClientRect();
+        var pad = 10;
+        var top = Math.max(12, r.top + window.scrollY - pad);
+        var left = Math.max(12, r.left + window.scrollX - pad);
+        var w = Math.min(r.width + pad * 2, window.innerWidth - 24);
+        var h = Math.min(r.height + pad * 2, window.innerHeight - 24);
+        spot.style.top = top + 'px';
+        spot.style.left = left + 'px';
+        spot.style.width = w + 'px';
+        spot.style.height = h + 'px';
+
+        // Card placement: prefer below, else above.
+        var cardW = Math.min(520, window.innerWidth - 24);
+        var cx = Math.min(window.scrollX + window.innerWidth - 12 - cardW, Math.max(window.scrollX + 12, left));
+        var cy = (r.bottom + 14 + 240 < window.innerHeight) ? (r.bottom + window.scrollY + 14) : (r.top + window.scrollY - 14 - 240);
+        card.style.left = cx + 'px';
+        card.style.top = Math.max(window.scrollY + 12, cy) + 'px';
+    }
+
+    function dismiss() {
+        overlay.style.display = 'none';
+        if (window.MakauSecurity && MakauSecurity.csrfFetch) {
+            MakauSecurity.csrfFetch('/Home/DismissTutorial', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                .catch(function(){});
+        }
+    }
+
+    function showStep() {
+        var s = steps[i];
+        var el = document.querySelector(s.sel);
+        if (!el) { i = Math.min(i + 1, steps.length - 1); el = document.querySelector(steps[i].sel); }
+        if (!el) { dismiss(); return; }
+
+        overlay.style.display = 'block';
+        $('mk-coach-title').textContent = s.title;
+        $('mk-coach-step').textContent = 'Step ' + (i + 1) + ' / ' + steps.length;
+        $('mk-coach-body').textContent = s.body;
+        $('mk-coach-ms').textContent = s.ms;
+        $('mk-coach-prev').style.visibility = i === 0 ? 'hidden' : 'visible';
+        $('mk-coach-next').textContent = (i === steps.length - 1) ? 'Done ✓' : 'Next';
+
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+        setTimeout(function () { placeFor(el); }, 220);
+    }
+
+    $('mk-coach-skip').addEventListener('click', dismiss);
+    $('mk-coach-prev').addEventListener('click', function () { if (i > 0) { i--; showStep(); } });
+    $('mk-coach-next').addEventListener('click', function () { if (i < steps.length - 1) { i++; showStep(); } else dismiss(); });
+    window.addEventListener('resize', function () { showStep(); });
+    window.addEventListener('scroll', function () { /* keep light: do nothing */ }, { passive: true });
+
+    window.MakauCoachTourStart = function () { i = 0; showStep(); };
+})();
+</script>

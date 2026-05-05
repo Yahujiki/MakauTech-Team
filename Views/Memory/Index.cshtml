@@ -1,0 +1,309 @@
+@{
+    ViewData["Title"] = "Memory Flip";
+    bool firstFree = ViewBag.FirstGameFree == true;
+    int playCost = ViewBag.PlayCost ?? 20;
+}
+
+@section Styles {
+    <style>
+        .mem-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto 24px;
+        }
+        .mem-card {
+            aspect-ratio: 1;
+            position: relative;
+            border-radius: var(--mk-r);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            user-select: none;
+        }
+        .mem-card.flipped { transform: rotateY(180deg); }
+        .mem-card.matched { transform: rotateY(180deg); cursor: default; }
+        .mem-card-face {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            border-radius: inherit;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            font-size: 36px;
+        }
+        .mem-card-back {
+            background: linear-gradient(135deg, #16a34a, #047857);
+            color: #fff;
+            box-shadow: inset 0 0 24px rgba(0,0,0,0.25),
+                        0 6px 18px rgba(16,185,129,0.32);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .mem-card-back::before {
+            content: "🦢";
+            font-size: 32px;
+            opacity: 0.85;
+        }
+        .mem-card-front {
+            background: rgba(255,255,255,0.94);
+            color: var(--mk-night-900);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            transform: rotateY(180deg);
+            border: 1px solid rgba(34,197,94,0.4);
+        }
+        .mem-card.matched .mem-card-front {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            box-shadow: 0 0 0 2px #fbbf24, 0 8px 24px rgba(251,191,36,0.5);
+        }
+
+        @@media (max-width: 480px) {
+            .mem-card-face { font-size: 28px; }
+        }
+    </style>
+}
+
+<div class="gm-page">
+
+    <div class="gm-header">
+        <div class="gm-header-left">
+            <a href="@Url.Action("Games","Home")" class="gm-back">← Back</a>
+            <div class="gm-title-block">
+                <span class="gm-emoji" aria-hidden="true">🧠</span>
+                <div>
+                    <h1 class="gm-title">Memory Flip</h1>
+                    <p class="gm-subtitle">Match every Sibu icon. Fewer flips = more points.</p>
+                </div>
+            </div>
+        </div>
+        <div class="gm-tags">
+            @if (firstFree) { <span class="gm-tag gm-tag-free">First game FREE</span> }
+            else            { <span class="gm-tag gm-tag-cost">@playCost pts</span> }
+            <span class="gm-tag gm-tag-earn">Earn up to 30 pts</span>
+        </div>
+    </div>
+
+    <div class="game-fun-mini" role="note" style="max-width:620px;"><b>Flip smart:</b> Try to memorise landmark pairs in two clicks — mismatches hurt your accuracy bonus, gold matches 💛 shimmer on a perfect streak.</div>
+
+    @* PAY SCREEN *@
+    <div id="memPayScreen" class="gm-card">
+        <h2>Ready to flip?</h2>
+        <p>Match all 8 pairs. Bonus points for fewer mistakes &amp; faster time.</p>
+        <div class="rules">
+            <ul>
+                <li>🎴 16 cards · 8 matching pairs</li>
+                <li>⏱ 90 seconds — beat the clock</li>
+                <li>💯 Up to 30 pts on perfect run</li>
+                <li>❌ Each mismatch costs you accuracy</li>
+            </ul>
+        </div>
+        <button id="memBtnPay" class="gm-btn gm-btn-primary gm-btn-block">
+            @(firstFree ? "Play for FREE" : "Pay & Play (" + playCost + " pts)")
+        </button>
+        <div id="memPayMsg" class="gm-mt" style="display:none; color:#fca5a5;"></div>
+    </div>
+
+    @* GAME SCREEN *@
+    <div id="memGameScreen" style="display:none;">
+        <div class="gm-hud">
+            <div class="gm-hud-cell">
+                <div class="gm-hud-label">Time</div>
+                <div class="gm-hud-value" id="memTime">90</div>
+            </div>
+            <div class="gm-hud-cell">
+                <div class="gm-hud-label">Matched</div>
+                <div class="gm-hud-value" id="memMatched">0/8</div>
+            </div>
+            <div class="gm-hud-cell">
+                <div class="gm-hud-label">Flips</div>
+                <div class="gm-hud-value" id="memFlips">0</div>
+            </div>
+            <div class="gm-hud-cell">
+                <div class="gm-hud-label">Score</div>
+                <div class="gm-hud-value hot" id="memScore">0</div>
+            </div>
+        </div>
+
+        <div class="mem-board" id="memBoard" role="grid" aria-label="Memory cards"></div>
+    </div>
+
+    @* RESULT SCREEN *@
+    <div id="memResult" class="gm-result gm-card" style="display:none;">
+        <div class="gm-result-emoji" id="memResultEmoji">🏆</div>
+        <h2 class="gm-result-title" id="memResultTitle">Well played!</h2>
+        <p id="memResultDesc" style="color:var(--gm-text-dim);"></p>
+        <div class="gm-result-score" id="memResultScore">+0 pts</div>
+        <div class="gm-row gm-center gm-mt">
+            <button id="memBtnReplay" class="gm-btn gm-btn-primary">Play again</button>
+            <a href="@Url.Action("Games","Home")" class="gm-btn gm-btn-secondary">Games hub</a>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const ICONS = ['🍜','🥟','🍳','🛕','🌿','🚣','🏛️','🦢'];
+    const board = document.getElementById('memBoard');
+    const elTime = document.getElementById('memTime');
+    const elMatched = document.getElementById('memMatched');
+    const elFlips = document.getElementById('memFlips');
+    const elScore = document.getElementById('memScore');
+    const payScreen = document.getElementById('memPayScreen');
+    const gameScreen = document.getElementById('memGameScreen');
+    const resultScreen = document.getElementById('memResult');
+    const btnPay = document.getElementById('memBtnPay');
+    const btnReplay = document.getElementById('memBtnReplay');
+    const payMsg = document.getElementById('memPayMsg');
+
+    let timeLeft = 90, matched = 0, flips = 0, score = 0;
+    let first = null, busy = false, timer = null, startedAt = 0;
+
+    function csrf() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function buildBoard() {
+        board.innerHTML = '';
+        const deck = shuffle([...ICONS, ...ICONS]);
+        deck.forEach((icon, idx) => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'mem-card';
+            card.dataset.icon = icon;
+            card.dataset.idx = idx;
+            card.setAttribute('aria-label', 'Hidden card');
+            card.innerHTML =
+                '<div class="mem-card-face mem-card-back" aria-hidden="true"></div>' +
+                '<div class="mem-card-face mem-card-front">' + icon + '</div>';
+            card.addEventListener('click', onFlip);
+            board.appendChild(card);
+        });
+    }
+
+    function onFlip(e) {
+        if (busy) return;
+        const card = e.currentTarget;
+        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        card.classList.add('flipped');
+        flips++;
+        elFlips.textContent = flips;
+        try { MakauSound && MakauSound.click && MakauSound.click(); } catch (_) {}
+
+        if (!first) { first = card; return; }
+        if (first.dataset.icon === card.dataset.icon) {
+            first.classList.add('matched');
+            card.classList.add('matched');
+            matched++;
+            score += 4;
+            elMatched.textContent = matched + '/8';
+            elScore.textContent = score;
+            try { MakauSound && MakauSound.combo && MakauSound.combo(); } catch (_) {}
+            first = null;
+            if (matched === 8) endGame(true);
+        } else {
+            busy = true;
+            const a = first, b = card;
+            try { MakauSound && MakauSound.miss && MakauSound.miss(); } catch (_) {}
+            setTimeout(function () {
+                a.classList.remove('flipped');
+                b.classList.remove('flipped');
+                first = null;
+                busy = false;
+            }, 750);
+        }
+    }
+
+    function startTimer() {
+        startedAt = Date.now();
+        timer = setInterval(function () {
+            timeLeft--;
+            if (timeLeft <= 0) { endGame(false); return; }
+            elTime.textContent = timeLeft;
+        }, 1000);
+    }
+
+    function endGame(won) {
+        if (timer) { clearInterval(timer); timer = null; }
+        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+
+        // Bonus calculation: time + flip efficiency
+        let bonus = 0;
+        if (won) {
+            bonus += Math.max(0, 30 - elapsed) / 3;     // up to ~10
+            bonus += Math.max(0, 22 - flips) * 0.6;      // perfect = 16 flips ⇒ ~3.6
+        }
+        score = Math.min(30, Math.round(score + bonus));
+        elScore.textContent = score;
+
+        gameScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+        document.getElementById('memResultEmoji').textContent = won ? '🏆' : '⏰';
+        document.getElementById('memResultTitle').textContent = won ? 'Perfect memory!' : 'Time\'s up';
+        document.getElementById('memResultDesc').textContent = won
+            ? `You matched all 8 pairs in ${elapsed}s with ${flips} flips.`
+            : `You matched ${matched}/8 pairs.`;
+        document.getElementById('memResultScore').textContent = '+' + score + ' pts';
+
+        try {
+            ((window.MakauSecurity && MakauSecurity.csrfFetch) ? MakauSecurity.csrfFetch : fetch)('/Memory/SubmitScore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Score: score })
+            });
+        } catch (_) {}
+    }
+
+    function startGame() {
+        timeLeft = 90; matched = 0; flips = 0; score = 0;
+        first = null; busy = false;
+        elTime.textContent = '90';
+        elMatched.textContent = '0/8';
+        elFlips.textContent = '0';
+        elScore.textContent = '0';
+        payScreen.style.display = 'none';
+        resultScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        buildBoard();
+        startTimer();
+    }
+
+    btnPay.addEventListener('click', function () {
+        btnPay.disabled = true;
+        btnPay.textContent = 'Loading...';
+        ((window.MakauSecurity && MakauSecurity.csrfFetch) ? MakauSecurity.csrfFetch : fetch)('/Memory/PayToPlay', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.success) {
+                    payMsg.style.display = 'block';
+                    payMsg.textContent = data.message || 'Could not start the game.';
+                    btnPay.disabled = false;
+                    btnPay.textContent = '@(firstFree ? "Play for FREE" : "Pay & Play (" + playCost + " pts)")';
+                    return;
+                }
+                try { MakauSound && MakauSound.pay && MakauSound.pay(); } catch (_) {}
+                startGame();
+            })
+            .catch(function () {
+                payMsg.style.display = 'block';
+                payMsg.textContent = 'Network error. Try again.';
+                btnPay.disabled = false;
+                btnPay.textContent = '@(firstFree ? "Play for FREE" : "Pay & Play (" + playCost + " pts)")';
+            });
+    });
+
+    btnReplay.addEventListener('click', function () {
+        // Replay does NOT spend points again in current implementation; reuse pay flow.
+        location.reload();
+    });
+})();
+</script>
+

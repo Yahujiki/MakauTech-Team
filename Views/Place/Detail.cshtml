@@ -1,0 +1,263 @@
+﻿@model MakauTech.Models.PlaceDetailViewModel
+@{
+    ViewData["Title"] = Model.Place.Name;
+    var ph = Url.Content("~/Images/placeholder.svg");
+}
+<style>
+.review-star-select { display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:0.15rem; margin:0.4rem 0; }
+.review-star-btn { font-size:1.8rem; cursor:pointer; color:#ddd; transition:color 0.15s, transform 0.15s; user-select:none; }
+.review-star-btn:hover,
+.review-star-btn:hover ~ .review-star-btn { color:var(--gold); transform:scale(1.15); }
+input[type="radio"]:checked ~ .review-star-btn { color:var(--gold); }
+</style>
+<div class="detail-container">
+    <div class="detail-header">
+        <img src="@PlaceImageUrl.Resolve(Url, Model.Place.ImageUrl)" alt="@Model.Place.Name" class="detail-image" loading="lazy" onerror="this.onerror=null;this.src='@ph'" />
+        <div class="detail-info">
+            <span class="detail-category">@Model.Place.Category?.Icon @Model.Place.Category?.Name</span>
+            <h1>@Model.Place.Name</h1>
+            <p class="detail-location">📍 @Model.Place.Location</p>
+            <p class="detail-desc">@Model.Place.Description</p>
+            <div class="detail-meta">
+                @if (Model.Reviews.Count > 0)
+                {
+                    <span>⭐ @Model.Place.Rating.ToString("F1") (@Model.Reviews.Count reviews)</span>
+                }
+                else
+                {
+                    <span class="no-rating">⭐ No ratings yet</span>
+                }
+                <span>👁️ @Model.Place.VisitCount visits</span>
+                <span>❤️ @Model.LikeCount like@(Model.LikeCount == 1 ? "" : "s")</span>
+            </div>
+
+            <div class="detail-travel-tip">
+                <strong>Real visit tip:</strong> Hawker &amp; kopitiam crowds in Sibu often peak 7–9am and 11am–1pm. Cash and small notes still rule at many stalls.
+            </div>
+
+            @if (Model.IsLoggedIn)
+            {
+                <form method="post" asp-action="ToggleLike" style="margin: 0.75rem 0;">
+                    <input type="hidden" name="placeId" value="@Model.Place.Id" />
+                    <button type="submit" class="btn-like @(Model.UserHasLiked ? "btn-liked" : "")">
+                        @(Model.UserHasLiked ? "❤️ Liked" : "🤍 Like this place")
+                    </button>
+                    <span class="like-hint">Like + written review together = <strong>10 pts</strong></span>
+                </form>
+
+                @if (Model.AlreadyVisited)
+                {
+                    <div class="alert alert-info">📍 You’ve opened this place before — visits are tracked; earn more through reviews &amp; games.</div>
+                }
+                else
+                {
+                    <div class="alert alert-success">📍 First visit recorded. Earn points by liking ❤️ and leaving a real comment.</div>
+                }
+            }
+            else
+            {
+                <a asp-controller="Home" asp-action="Login" class="btn-primary">Login to like &amp; earn points</a>
+            }
+        </div>
+    </div>
+
+    @{
+        var sibuClips = MakauTech.Helpers.SibuVideos.GetForPlace(Model.Place.Name, max: 3);
+    }
+    @if (sibuClips.Count > 0)
+    {
+        <section class="pd-videos">
+            <div class="pd-videos-head">
+                <span class="pd-videos-kicker">🎬 SIBU IN MOTION</span>
+                <h3 class="pd-videos-title">See @Model.Place.Name on screen</h3>
+                <p class="pd-videos-sub">Curated clips from local creators — short walks, drone passes, food close-ups.</p>
+            </div>
+            <div class="pd-videos-grid">
+                @foreach (var c in sibuClips)
+                {
+                    <figure class="pd-video">
+                        <div class="pd-video-frame">
+                            <iframe src="https://www.youtube-nocookie.com/embed/@c.YouTubeId?rel=0&modestbranding=1&playsinline=1"
+                                    title="@c.Title"
+                                    loading="lazy" frameborder="0"
+                                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                    allowfullscreen></iframe>
+                        </div>
+                        <figcaption class="pd-video-cap">
+                            <span class="pd-video-title">@c.Title</span>
+                            <span class="pd-video-channel">via @c.Channel</span>
+                        </figcaption>
+                    </figure>
+                }
+            </div>
+        </section>
+        <style>
+        .pd-videos { margin: 2.25rem 0; }
+        .pd-videos-head { margin-bottom: 1.1rem; }
+        .pd-videos-kicker {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+            color: var(--accent, #22c55e); text-transform: uppercase;
+        }
+        .pd-videos-title {
+            font-size: 1.35rem; font-weight: 800; margin: 0.3rem 0 0.25rem 0;
+            color: var(--text, #111827); letter-spacing: -0.01em;
+        }
+        [data-theme="dark"] .pd-videos-title { color: #f1f5f9; }
+        .pd-videos-sub {
+            font-size: 0.92rem; color: var(--text-light, #64748b);
+            margin: 0; line-height: 1.55;
+        }
+        [data-theme="dark"] .pd-videos-sub { color: rgba(226,232,240,0.6); }
+        .pd-videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .pd-video { margin: 0; }
+        .pd-video-frame {
+            position: relative; aspect-ratio: 16/9;
+            border-radius: 12px; overflow: hidden;
+            background: #0a141d;
+            border: 1px solid rgba(15,23,42,0.08);
+            box-shadow: 0 4px 18px rgba(15,23,42,0.10);
+        }
+        [data-theme="dark"] .pd-video-frame {
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+        }
+        .pd-video-frame iframe {
+            position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
+        }
+        .pd-video-cap {
+            display: flex; flex-direction: column;
+            padding: 0.65rem 0.2rem 0;
+            font-size: 0.85rem;
+        }
+        .pd-video-title { font-weight: 700; color: var(--text, #111827); line-height: 1.3; }
+        [data-theme="dark"] .pd-video-title { color: #f1f5f9; }
+        .pd-video-channel { font-size: 0.78rem; color: var(--text-light, #64748b); margin-top: 2px; }
+        [data-theme="dark"] .pd-video-channel { color: rgba(226,232,240,0.55); }
+        </style>
+    }
+
+    @if (TempData["ReviewError"] != null)
+    {
+        <div class="alert alert-error">@TempData["ReviewError"]</div>
+    }
+    @if (TempData["ReviewNotice"] != null)
+    {
+        <div class="alert alert-info">@TempData["ReviewNotice"]</div>
+    }
+
+    @if (Model.IsLoggedIn)
+    {
+        <div class="review-form-section">
+            <h3>✍️ Review (+10 pts with ❤️ Like + comment)</h3>
+            <p class="review-form-hint">You must <strong>like</strong> this place and write a <strong>comment</strong> to earn 10 points (one review per submit).</p>
+            <form method="post" asp-action="AddReview" enctype="multipart/form-data">
+                <input type="hidden" name="placeId" value="@Model.Place.Id" />
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div class="review-star-select" id="reviewStars">
+                        @for (int s = 5; s >= 1; s--)
+                        {
+                            <input type="radio" name="rating" value="@s" id="rs@s" @(s==5?"checked":"") style="display:none;">
+                            <label for="rs@s" class="review-star-btn" data-val="@s">★</label>
+                        }
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Your comment</label>
+                    <textarea name="comment" class="form-control" rows="4"
+                        placeholder="What did you see, eat, or experience? Be specific — great reviews help fellow visitors!" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>📷 Add a photo <span style="font-weight:400;color:var(--text-light);">(optional)</span></label>
+                    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                        <label for="reviewPhoto" class="review-upload-label">📁 Choose photo</label>
+                        <input type="file" name="reviewPhoto" id="reviewPhoto" class="review-upload-hidden"
+                               accept="image/jpeg,image/png,image/webp,image/gif" />
+                        <span class="review-upload-name" id="reviewPhotoName">No photo selected</span>
+                    </div>
+                    <div id="reviewPhotoPreviewWrap" style="display:none;margin-top:0.75rem;">
+                        <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:0.4rem;">Preview:</p>
+                        <div style="position:relative;display:inline-block;">
+                            <img id="reviewPhotoPreview" src="" alt="Photo preview"
+                                 style="max-width:220px;max-height:160px;border-radius:10px;border:2px solid var(--gold);object-fit:cover;display:block;" />
+                            <button type="button" id="reviewPhotoClear"
+                                    style="position:absolute;top:-8px;right:-8px;background:#ef5350;color:white;border:none;border-radius:50%;width:26px;height:26px;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;"
+                                    title="Remove photo">✕</button>
+                        </div>
+                    </div>
+                    <p style="font-size:0.8rem;color:var(--text-light);margin-top:0.3rem;">JPG, PNG, WebP or GIF · max 5 MB</p>
+                </div>
+                <button type="submit" class="btn-primary">Submit review</button>
+            </form>
+        </div>
+    }
+    <div class="reviews-section">
+        <h3>💬 Reviews (@Model.Reviews.Count)</h3>
+        @if (!Model.Reviews.Any())
+        {
+            <p class="empty-state">No reviews yet. Be the first!</p>
+        }
+        @foreach (var review in Model.Reviews)
+        {
+            <div class="review-card">
+                <div class="review-header">
+                    <strong>@review.UserName</strong>
+                    <span>@(new string('★', review.Rating))@(new string('☆', 5 - review.Rating)) @review.Rating/5</span>
+                    <small>@review.CreatedAt.ToString("dd MMM yyyy")</small>
+                </div>
+                <p>@review.Comment</p>
+                @if (review.HasImage)
+                {
+                    <img src="@PlaceImageUrl.Resolve(Url, review.ImageUrl)" alt="Review photo by @review.UserName"
+                         class="review-img"
+                         onclick="this.style.maxHeight=this.style.maxHeight?'':'100%'"
+                         onerror="this.style.display='none'" />
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    const input = document.getElementById('reviewPhoto');
+    const nameEl = document.getElementById('reviewPhotoName');
+    const previewWrap = document.getElementById('reviewPhotoPreviewWrap');
+    const previewImg = document.getElementById('reviewPhotoPreview');
+    const clearBtn = document.getElementById('reviewPhotoClear');
+
+    if (!input) return;
+
+    input.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) { resetPreview(); return; }
+        if (nameEl) nameEl.textContent = file.name;
+        if (typeof MakauSound !== 'undefined') MakauSound.click();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (previewImg) previewImg.src = e.target.result;
+            if (previewWrap) previewWrap.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            input.value = '';
+            resetPreview();
+        });
+    }
+
+    function resetPreview() {
+        if (nameEl) nameEl.textContent = 'No photo selected';
+        if (previewWrap) previewWrap.style.display = 'none';
+        if (previewImg) previewImg.src = '';
+    }
+})();
+</script>
+}

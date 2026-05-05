@@ -1,0 +1,35 @@
+﻿@model List<MakauTech.Models.Place>
+@{
+    ViewData["Title"] = "Places";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="admin-page-header">
+    <h2>Places</h2>
+    <a asp-action="CreatePlace" class="admin-btn">+ Add Place</a>
+</div>
+
+<table class="admin-table">
+    <thead>
+        <tr><th>Name</th><th>Location</th><th>Category</th><th>Rating</th><th>Visits</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var place in Model)
+        {
+            <tr>
+                <td>@place.Name</td>
+                <td>@place.Location</td>
+                <td>@place.Category?.Name</td>
+                <td>⭐ @place.Rating.ToString("F1")</td>
+                <td>@place.VisitCount</td>
+                <td>
+                    <a asp-action="EditPlace" asp-route-id="@place.Id" class="admin-btn-sm">Edit</a>
+                    <form method="post" asp-action="DeletePlace" style="display:inline">
+                        <input type="hidden" name="id" value="@place.Id" />
+                        <button type="submit" class="admin-btn-sm admin-btn-danger" onclick="return confirm('Delete?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

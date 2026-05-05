@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://makautech.com/sitemap.xml

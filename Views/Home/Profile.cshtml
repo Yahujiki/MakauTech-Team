@@ -1,0 +1,327 @@
+@model MakauTech.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "Profile";
+    var user = Model.User;
+    int nextPts = user.Level == "Newbie" ? 20 : user.Level == "Bronze" ? 50 : user.Level == "Silver" ? 100 : 999;
+    int prog = user.Level == "Gold" ? 100 : (int)((double)user.Points / nextPts * 100);
+    string lvKey = user.Level.ToLower();
+}
+
+@section Styles {
+<style>
+/* ─── Profile theme tokens — work on light + dark mode ────── */
+:root {
+    --pf-text:        #111827;
+    --pf-text-dim:    #4b5563;
+    --pf-text-mute:   #6b7280;
+    --pf-card-bg:     #ffffff;
+    --pf-card-border: rgba(15,23,42,0.08);
+    --pf-card-hover:  rgba(34,197,94,0.45);
+    --pf-track:       rgba(15,23,42,0.07);
+    --pf-header-grad: linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(255,255,255,0) 70%);
+    --pf-shadow:      0 4px 14px rgba(7,29,15,0.06);
+    --pf-edit-bg:     rgba(59,130,246,0.10);
+    --pf-edit-text:   #2563eb;
+    --pf-edit-bd:     rgba(59,130,246,0.30);
+    --pf-del-bg:      rgba(239,68,68,0.10);
+    --pf-del-text:    #dc2626;
+    --pf-del-bd:      rgba(239,68,68,0.30);
+    --pf-star:        #d97706;
+    --pf-ghost-text:  #1f2937;
+    --pf-ghost-bd:    rgba(15,23,42,0.15);
+    --pf-ghost-hover: rgba(15,23,42,0.05);
+}
+[data-theme="dark"] {
+    --pf-text:        #f1f5f9;
+    --pf-text-dim:    rgba(226,232,240,0.78);
+    --pf-text-mute:   rgba(226,232,240,0.55);
+    --pf-card-bg:     rgba(255,255,255,0.025);
+    --pf-card-border: rgba(255,255,255,0.07);
+    --pf-card-hover:  rgba(34,197,94,0.4);
+    --pf-track:       rgba(255,255,255,0.07);
+    --pf-header-grad: linear-gradient(135deg, rgba(34,197,94,0.07) 0%, rgba(15,23,42,0) 60%);
+    --pf-shadow:      0 4px 20px rgba(0,0,0,0.35);
+    --pf-edit-bg:     rgba(96,165,250,0.15);
+    --pf-edit-text:   #93c5fd;
+    --pf-edit-bd:     rgba(96,165,250,0.35);
+    --pf-del-bg:      rgba(239,68,68,0.12);
+    --pf-del-text:    #fca5a5;
+    --pf-del-bd:      rgba(239,68,68,0.30);
+    --pf-star:        #fbbf24;
+    --pf-ghost-text:  rgba(226,232,240,0.85);
+    --pf-ghost-bd:    rgba(255,255,255,0.14);
+    --pf-ghost-hover: rgba(255,255,255,0.05);
+}
+
+/* ─── Profile (scoped) ─────────────────────────────────────── */
+.pf { max-width: 1180px; margin: 2rem auto 4rem; padding: 0 1.5rem;
+      color: var(--pf-text); }
+
+/* Header card */
+.pf-header { display:flex; align-items:flex-start; gap:1.5rem;
+             background: var(--pf-card-bg);
+             background-image: var(--pf-header-grad);
+             border: 1px solid var(--pf-card-border);
+             border-radius: 18px; padding: 1.75rem 1.85rem; margin-bottom: 1.5rem;
+             box-shadow: var(--pf-shadow); }
+.pf-avatar { width: 96px; height: 96px; border-radius: 50%; flex-shrink: 0;
+             object-fit: cover;
+             background: rgba(34,197,94,0.1);
+             border: 2px solid rgba(34,197,94,0.45);
+             display:flex; align-items:center; justify-content:center;
+             font-size: 2.4rem; color: var(--pf-text); }
+.pf-id { flex: 1 1 auto; min-width: 0; }
+.pf-name { font-size: 1.85rem; font-weight: 800; color: var(--pf-text);
+           margin: 0 0 0.35rem 0; letter-spacing: -0.01em; }
+.pf-email { font-size: 0.9rem; color: var(--pf-text-mute); margin: 0 0 0.65rem 0;
+            word-break: break-all; }
+.pf-level-pill { display:inline-flex; align-items:center; gap:0.4rem;
+                 padding: 0.25rem 0.75rem; border-radius: 999px;
+                 font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+                 text-transform: uppercase;
+                 vertical-align: middle; margin-left: 0.4rem; }
+.pf-level-newbie { background: rgba(100,116,139,0.18); color: #475569;
+                   border:1px solid rgba(100,116,139,0.30); }
+.pf-level-bronze { background: rgba(205,127,50,0.18); color: #92400e;
+                   border:1px solid rgba(205,127,50,0.40); }
+.pf-level-silver { background: rgba(148,163,184,0.20); color: #475569;
+                   border:1px solid rgba(148,163,184,0.40); }
+.pf-level-gold   { background: rgba(245,158,11,0.18); color: #b45309;
+                   border:1px solid rgba(245,158,11,0.45); }
+[data-theme="dark"] .pf-level-newbie { color: #cbd5e1; }
+[data-theme="dark"] .pf-level-bronze { color: #e8a96a; }
+[data-theme="dark"] .pf-level-silver { color: #e2e8f0; }
+[data-theme="dark"] .pf-level-gold   { color: #fbbf24; }
+
+.pf-actions { display:flex; gap:0.5rem; flex-shrink: 0; align-items:center; }
+.pf-btn { display:inline-flex; align-items:center; gap:0.4rem;
+          padding: 0.55rem 1rem; border-radius: 10px;
+          font-size: 0.88rem; font-weight: 600; text-decoration: none;
+          transition: all 0.18s; cursor: pointer; border: 1px solid transparent;
+          white-space: nowrap; }
+.pf-btn-primary { background: var(--accent, #22c55e); color: #fff; }
+.pf-btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pf-btn-ghost { background: transparent; color: var(--pf-ghost-text);
+                border-color: var(--pf-ghost-bd); }
+.pf-btn-ghost:hover { background: var(--pf-ghost-hover); }
+
+/* Stat row */
+.pf-stats { display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 0.85rem; margin-bottom: 1.5rem; }
+.pf-stat { background: var(--pf-card-bg);
+           border: 1px solid var(--pf-card-border);
+           border-radius: 14px; padding: 1.1rem 1rem;
+           text-align: center; transition: border-color 0.2s, transform 0.2s;
+           box-shadow: var(--pf-shadow); }
+.pf-stat:hover { border-color: var(--pf-card-hover); transform: translateY(-2px); }
+.pf-stat-value { font-size: 1.65rem; font-weight: 800; color: var(--pf-text);
+                 line-height: 1; margin-bottom: 0.45rem; letter-spacing: -0.02em; }
+.pf-stat-value.is-level { color: var(--accent, #22c55e); font-size: 1.3rem;
+                          text-transform: uppercase; letter-spacing: 0.05em; }
+.pf-stat-label { font-size: 0.75rem; color: var(--pf-text-mute);
+                 text-transform: uppercase; letter-spacing: 0.06em;
+                 font-weight: 600; }
+
+/* Two-column body */
+.pf-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.25rem; align-items: start; }
+
+.pf-card { background: var(--pf-card-bg);
+           border: 1px solid var(--pf-card-border);
+           border-radius: 16px; padding: 1.5rem 1.65rem;
+           margin-bottom: 1.25rem;
+           box-shadow: var(--pf-shadow); }
+.pf-card h3 { font-size: 0.95rem; color: var(--accent, #22c55e);
+              text-transform: uppercase; letter-spacing: 0.08em;
+              font-weight: 700; margin: 0 0 1rem 0;
+              display:flex; align-items:center; gap:0.5rem; }
+
+/* Level progress */
+.pf-progress-track { background: var(--pf-track);
+                     border-radius: 999px; height: 10px;
+                     overflow: hidden; margin-bottom: 0.6rem; }
+.pf-progress-fill { background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+                    height: 100%; border-radius: 999px; transition: width 0.5s; }
+.pf-progress-meta { display:flex; justify-content:space-between;
+                    font-size: 0.85rem; color: var(--pf-text-dim); }
+
+/* Badges grid (compact) */
+.pf-badges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+.pf-badge { background: var(--pf-card-bg);
+            border: 1px solid var(--pf-card-border);
+            border-radius: 12px; padding: 0.95rem 0.8rem;
+            text-align: center; transition: all 0.2s; position: relative; }
+.pf-badge.unlocked { background: rgba(34,197,94,0.08);
+                     border-color: rgba(34,197,94,0.40); }
+[data-theme="dark"] .pf-badge.unlocked { background: rgba(34,197,94,0.10); }
+.pf-badge.locked { opacity: 0.55; }
+.pf-badge-icon { font-size: 1.7rem; margin-bottom: 0.35rem;
+                 display:block; line-height: 1; }
+.pf-badge-name { font-size: 0.82rem; font-weight: 700; color: var(--pf-text);
+                 margin: 0 0 0.25rem 0; line-height: 1.2; }
+.pf-badge-desc { font-size: 0.7rem; color: var(--pf-text-mute);
+                 line-height: 1.35; margin: 0 0 0.4rem 0;
+                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+                 overflow: hidden; }
+.pf-badge-status { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em;
+                   text-transform: uppercase;
+                   padding: 0.18rem 0.5rem; border-radius: 999px;
+                   display: inline-block; }
+.pf-badge.unlocked .pf-badge-status { background: rgba(34,197,94,0.20); color: #15803d; }
+[data-theme="dark"] .pf-badge.unlocked .pf-badge-status { color: #4ade80; }
+.pf-badge.locked .pf-badge-status { background: rgba(148,163,184,0.15);
+                                    color: var(--pf-text-mute); }
+
+/* Reviews */
+.pf-review { background: var(--pf-card-bg);
+             border: 1px solid var(--pf-card-border);
+             border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 0.7rem; }
+.pf-review-head { display:flex; justify-content:space-between; align-items:center;
+                  margin-bottom: 0.45rem; gap: 0.5rem; }
+.pf-review-head strong { font-size: 0.95rem; color: var(--pf-text); }
+.pf-review-head span { font-size: 0.85rem; color: var(--pf-star); font-weight: 600; }
+.pf-review p { font-size: 0.88rem; color: var(--pf-text-dim);
+               margin: 0 0 0.65rem 0; line-height: 1.5; }
+.pf-review-actions { display:flex; gap:0.4rem; }
+.pf-review-actions .pf-btn { padding: 0.35rem 0.75rem; font-size: 0.78rem; }
+.pf-btn-edit { background: var(--pf-edit-bg); color: var(--pf-edit-text);
+               border-color: var(--pf-edit-bd); }
+.pf-btn-edit:hover { filter: brightness(1.08); }
+.pf-btn-delete { background: var(--pf-del-bg); color: var(--pf-del-text);
+                 border: 1px solid var(--pf-del-bd);
+                 display:inline-flex; align-items:center; cursor:pointer;
+                 padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600;
+                 border-radius: 10px; transition: all 0.18s; }
+.pf-btn-delete:hover { filter: brightness(1.08); }
+
+.pf-empty { text-align: center; color: var(--pf-text-mute);
+            font-size: 0.88rem; padding: 1.25rem 0; font-style: italic; }
+
+/* Responsive */
+@@media (max-width: 960px) {
+    .pf-body { grid-template-columns: 1fr; }
+    .pf-stats { grid-template-columns: repeat(3, 1fr); }
+    .pf-stats .pf-stat:nth-child(4),
+    .pf-stats .pf-stat:nth-child(5) { grid-column: span 1; }
+}
+@@media (max-width: 640px) {
+    .pf-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .pf-stats { grid-template-columns: repeat(2, 1fr); }
+    .pf-actions { width: 100%; }
+    .pf-actions .pf-btn { flex: 1; justify-content: center; }
+    .pf-badges { grid-template-columns: 1fr; }
+}
+</style>
+}
+
+<div class="pf">
+
+    <!-- ── HEADER ───────────────────────────────────────── -->
+    <div class="pf-header">
+        @if (ViewBag.AvatarUrl != null)
+        {
+            <img src="@Url.Content((string)ViewBag.AvatarUrl)" alt="" class="pf-avatar" />
+        }
+        else
+        {
+            <div class="pf-avatar" aria-hidden="true">👤</div>
+        }
+        <div class="pf-id">
+            <h1 class="pf-name">
+                @user.Name
+                <span class="pf-level-pill pf-level-@lvKey">@user.Level</span>
+            </h1>
+            <p class="pf-email">@user.Email</p>
+        </div>
+        <div class="pf-actions">
+            <a asp-action="EditProfile" class="pf-btn pf-btn-ghost">✏️ Edit Profile</a>
+            <a asp-controller="Home" asp-action="Settings" class="pf-btn pf-btn-primary">⚙️ Settings</a>
+        </div>
+    </div>
+
+    <!-- ── STAT STRIP ────────────────────────────────────── -->
+    <div class="pf-stats">
+        <div class="pf-stat">
+            <div class="pf-stat-value">@user.Points</div>
+            <div class="pf-stat-label">Total Points</div>
+        </div>
+        <div class="pf-stat">
+            <div class="pf-stat-value is-level">@user.Level</div>
+            <div class="pf-stat-label">Current Level</div>
+        </div>
+        <div class="pf-stat">
+            <div class="pf-stat-value">#@Model.Rank</div>
+            <div class="pf-stat-label">Leaderboard</div>
+        </div>
+        <div class="pf-stat">
+            <div class="pf-stat-value">@user.VisitedPlaceIds.Count</div>
+            <div class="pf-stat-label">Places Visited</div>
+        </div>
+        <div class="pf-stat">
+            <div class="pf-stat-value">@user.Badges.Count</div>
+            <div class="pf-stat-label">Badges Earned</div>
+        </div>
+    </div>
+
+    <!-- ── BODY: 2-column ───────────────────────────────── -->
+    <div class="pf-body">
+
+        <!-- LEFT — progress + reviews -->
+        <div>
+            <div class="pf-card">
+                <h3>📈 Level Progress</h3>
+                <div class="pf-progress-track">
+                    <div class="pf-progress-fill" style="width:@prog%"></div>
+                </div>
+                <div class="pf-progress-meta">
+                    <span>@user.Points pts</span>
+                    <span>@(user.Level == "Gold" ? "MAX LEVEL" : $"{nextPts - user.Points} pts to next level")</span>
+                </div>
+            </div>
+
+            <div class="pf-card">
+                <h3>✍️ My Reviews (@Model.UserReviews.Count)</h3>
+                @if (!Model.UserReviews.Any())
+                {
+                    <p class="pf-empty">No reviews yet. Visit a place to share your experience.</p>
+                }
+                @foreach (var r in Model.UserReviews)
+                {
+                    <div class="pf-review">
+                        <div class="pf-review-head">
+                            <strong>@r.Place?.Name</strong>
+                            <span>⭐ @r.Rating / 5</span>
+                        </div>
+                        <p>@r.Comment</p>
+                        <div class="pf-review-actions">
+                            <a asp-controller="Place" asp-action="EditReview" asp-route-id="@r.Id" class="pf-btn pf-btn-edit">Edit</a>
+                            <form method="post" asp-controller="Place" asp-action="DeleteReview" style="display:inline">
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="pf-btn-delete" onclick="return confirm('Delete this review?')">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT — badges -->
+        <div>
+            <div class="pf-card">
+                <h3>🏅 Badges <span style="margin-left:auto;font-size:0.78rem;color:rgba(226,232,240,0.55);font-weight:600;text-transform:none;letter-spacing:0;">@user.Badges.Count / @Model.AllAchievements.Count</span></h3>
+                <div class="pf-badges">
+                    @foreach (var a in Model.AllAchievements)
+                    {
+                        bool unlocked = user.Badges.Contains(a.Name);
+                        <div class="pf-badge @(unlocked ? "unlocked" : "locked")">
+                            <span class="pf-badge-icon">@a.Icon</span>
+                            <h4 class="pf-badge-name">@a.Name</h4>
+                            <p class="pf-badge-desc">@a.Description</p>
+                            <span class="pf-badge-status">@(unlocked ? "Unlocked" : "Locked")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

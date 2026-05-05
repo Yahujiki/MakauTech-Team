@@ -1,0 +1,368 @@
+@{
+    Layout = null;
+    var userName = ViewBag.UserName as string ?? "Explorer";
+    var firstName = userName.Split(' ')[0];
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to MakauTech</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Subtle animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(34,197,94,0.07) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(249,115,22,0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 520px;
+            padding: 2rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Logo at top */
+        .logo {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .logo-text { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+        .logo-text .green { color: #22c55e; }
+        .logo-text .orange { color: #f97316; }
+
+        /* Step indicator */
+        .steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .step-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+        }
+        .step-dot.active { background: #22c55e; width: 24px; border-radius: 4px; }
+        .step-dot.done { background: rgba(34,197,94,0.4); }
+
+        /* Card */
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+        }
+        h1 span { color: #22c55e; }
+
+        .subtitle {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Step panels */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        /* Choice grid */
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .choice-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+        .choice-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 1.1rem 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            user-select: none;
+        }
+        .choice-btn:hover {
+            background: rgba(34,197,94,0.08);
+            border-color: rgba(34,197,94,0.3);
+        }
+        .choice-btn.selected {
+            background: rgba(34,197,94,0.12);
+            border-color: #22c55e;
+        }
+        .choice-btn .icon { font-size: 1.75rem; line-height: 1; }
+        .choice-btn .label { font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.85); }
+        .choice-btn .desc { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+
+        /* Continue button */
+        .btn-continue {
+            width: 100%;
+            padding: 0.9rem;
+            background: #22c55e;
+            color: #000;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
+        }
+        .btn-continue:hover { background: #16a34a; transform: translateY(-1px); }
+        .btn-continue:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Skip link */
+        .skip-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .skip-link a {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .skip-link a:hover { color: rgba(255,255,255,0.6); }
+
+        /* Welcome step */
+        .welcome-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+        .interest-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 1rem 0 1.5rem;
+        }
+        .tag {
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.78rem;
+            color: #22c55e;
+        }
+
+        @@media (max-width: 480px) {
+            .card { padding: 2rem 1.25rem; }
+            .choice-grid { grid-template-columns: 1fr 1fr; }
+            .choice-grid.three-col { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="logo">
+        <div class="logo-text"><span class="green">Makau</span><span class="orange">Tech</span></div>
+    </div>
+
+    <div class="steps">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <div class="card">
+
+        <!-- Step 1: Travel Type -->
+        <div class="step-panel active" id="step1">
+            <h1>Welcome, <span>@firstName</span> 👋</h1>
+            <p class="subtitle">Tell us a bit about yourself so we can personalise your Sibu experience.</p>
+
+            <div class="choice-grid" id="travelGrid">
+                <button type="button" class="choice-btn" data-value="Tourist" onclick="selectTravel(this)">
+                    <div class="icon">✈️</div>
+                    <div class="label">Tourist</div>
+                    <div class="desc">Visiting Sibu</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Local" onclick="selectTravel(this)">
+                    <div class="icon">🏡</div>
+                    <div class="label">Local</div>
+                    <div class="desc">I'm from Sibu</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Student" onclick="selectTravel(this)">
+                    <div class="icon">🎓</div>
+                    <div class="label">Student</div>
+                    <div class="desc">Learning & exploring</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Business" onclick="selectTravel(this)">
+                    <div class="icon">💼</div>
+                    <div class="label">Business</div>
+                    <div class="desc">Promoting my place</div>
+                </button>
+            </div>
+
+            <button class="btn-continue" id="btn1" disabled onclick="goStep(2)">Continue</button>
+        </div>
+
+        <!-- Step 2: Interests -->
+        <div class="step-panel" id="step2">
+            <h1>What <span>interests</span> you?</h1>
+            <p class="subtitle">Pick all that apply — we'll highlight the best spots for you.</p>
+
+            <div class="choice-grid three-col" id="interestGrid">
+                <button type="button" class="choice-btn" data-value="Food" onclick="toggleInterest(this)">
+                    <div class="icon">🍜</div>
+                    <div class="label">Food</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Culture" onclick="toggleInterest(this)">
+                    <div class="icon">🏛️</div>
+                    <div class="label">Culture</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Nature" onclick="toggleInterest(this)">
+                    <div class="icon">🌿</div>
+                    <div class="label">Nature</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Photography" onclick="toggleInterest(this)">
+                    <div class="icon">📸</div>
+                    <div class="label">Photography</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Shopping" onclick="toggleInterest(this)">
+                    <div class="icon">🛍️</div>
+                    <div class="label">Shopping</div>
+                </button>
+                <button type="button" class="choice-btn" data-value="Games" onclick="toggleInterest(this)">
+                    <div class="icon">🎮</div>
+                    <div class="label">Games</div>
+                </button>
+            </div>
+
+            <button class="btn-continue" id="btn2" disabled onclick="goStep(3)">Continue</button>
+            <div class="skip-link"><a href="#" onclick="goStep(3); return false;">Skip this step</a></div>
+        </div>
+
+        <!-- Step 3: Done -->
+        <div class="step-panel" id="step3">
+            <div style="text-align:center; padding: 1rem 0;">
+                <div class="welcome-icon">🎉</div>
+                <h1 style="justify-content:center;">You're all set!</h1>
+                <p class="subtitle" style="margin-top:0.5rem;">Your personalised Sibu adventure starts now.</p>
+                <div class="interest-tags" id="summaryTags" style="justify-content:center;"></div>
+            </div>
+
+            <form method="post" asp-controller="Home" asp-action="Onboarding" id="onboardingForm">
+                <input type="hidden" name="travelType" id="hiddenTravel" />
+                <div id="hiddenInterests"></div>
+                <button type="submit" class="btn-continue">Start Exploring Sibu →</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let selectedTravel = '';
+    let selectedInterests = [];
+
+    function selectTravel(el) {
+        document.querySelectorAll('#travelGrid .choice-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedTravel = el.dataset.value;
+        document.getElementById('btn1').disabled = false;
+    }
+
+    function toggleInterest(el) {
+        el.classList.toggle('selected');
+        const val = el.dataset.value;
+        if (el.classList.contains('selected')) {
+            selectedInterests.push(val);
+        } else {
+            selectedInterests = selectedInterests.filter(v => v !== val);
+        }
+        document.getElementById('btn2').disabled = selectedInterests.length === 0;
+    }
+
+    function goStep(n) {
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.step-dot').forEach((d, i) => {
+            d.classList.remove('active', 'done');
+            if (i + 1 < n) d.classList.add('done');
+            if (i + 1 === n) d.classList.add('active');
+        });
+        document.getElementById('step' + n).classList.add('active');
+
+        if (n === 3) buildSummary();
+    }
+
+    function buildSummary() {
+        // Set hidden inputs
+        document.getElementById('hiddenTravel').value = selectedTravel;
+        const container = document.getElementById('hiddenInterests');
+        container.innerHTML = '';
+        selectedInterests.forEach(i => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'interests';
+            inp.value = i;
+            container.appendChild(inp);
+        });
+
+        // Build summary tags
+        const tags = document.getElementById('summaryTags');
+        tags.innerHTML = '';
+        if (selectedTravel) {
+            const t = document.createElement('span');
+            t.className = 'tag';
+            t.textContent = selectedTravel;
+            tags.appendChild(t);
+        }
+        selectedInterests.forEach(i => {
+            const t = document.createElement('span');
+            t.className = 'tag';
+            t.textContent = i;
+            tags.appendChild(t);
+        });
+        if (tags.children.length === 0) {
+            const t = document.createElement('span');
+            t.className = 'tag';
+            t.textContent = 'Explorer';
+            tags.appendChild(t);
+        }
+    }
+</script>
+
+</body>
+</html>
