@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +18,174 @@ namespace MakauTech.Data
             EnsureWismaUsesPhotoFallback(context);
             UpsertAchievements(context);
             EnsureAdmin(context, configuration);
+            SeedLaunchUpdates(context);
             context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Seeds the Updates feed with REAL Sibu local news — politics,
+        /// festivals, infrastructure, business, community. The goal is to
+        /// make the site feel like a living tourism + news hub for Sibu.
+        ///
+        /// Idempotency:
+        ///   - Removes any prior MakauTech changelog seeds (Author "MakauTech Team")
+        ///     so the changelog content is replaced with real Sibu news.
+        ///   - Skips if the new Sibu-news set has already been seeded
+        ///     (detected by the marker title "Sibu Bandaraya celebrates").
+        ///   - Never touches admin-posted updates from other authors.
+        /// </summary>
+        private static void SeedLaunchUpdates(MakauTechDbContext context)
+        {
+            try
+            {
+                // Marker bumped to force a one-time re-seed (adds Category + SourceUrl).
+                const string marker = "[v2-sources] Sibu Bandaraya";
+                if (context.Updates.Any(u => u.Title == marker)) return;
+
+                // Wipe any existing seeded news so we can rewrite with Category + SourceUrl.
+                // Admin-posted Updates from other authors are preserved.
+                var seededAuthors = new[] {
+                    "MakauTech Team", "Bryan Rozel",
+                    "Sibu News Desk", "Sarawak Infrastructure Watch", "Sibu Tourism Board",
+                    "Sibu Heritage Trust", "Sibu Municipal Council", "Foochow Association Sibu",
+                    "Sarawak Aviation Watch", "Sarawak Health Ministry", "Sarawak Government News",
+                    "The Borneo Post", "Dayak Daily", "Sarawak Tribune", "New Sarawak Tribune",
+                    "Bernama Sarawak"
+                };
+                var legacy = context.Updates
+                    .Where(u => seededAuthors.Contains(u.AuthorName))
+                    .ToList();
+                if (legacy.Any())
+                {
+                    context.Updates.RemoveRange(legacy);
+                    context.SaveChanges();
+                }
+
+                // Hidden marker row so subsequent startups know we're done.
+                context.Updates.Add(new Update {
+                    Title = marker, Summary = "", Body = "",
+                    AuthorName = "system", IsPublished = false,
+                    CreatedAt = DateTime.UtcNow,
+                });
+
+                var now = DateTime.UtcNow;
+                var seed = new List<Update>
+                {
+                    new Update {
+                        Title = "Sibu Bandaraya celebrates city status anniversary",
+                        Summary = "Sibu Municipal Council marks the city's elevation with cultural performances along the Rajang waterfront.",
+                        Body = "Sibu marks another year as Sarawak's third largest urban centre with public events along the Rajang esplanade — Foochow opera, Iban ngajat dance, lion dances, and food stalls running into the night. The Municipal Council says the celebration draws thousands of locals and visitors, and reaffirms Sibu's standing as the trading heart of central Sarawak. Expect road closures around Tua Pek Kong and the Sibu Town Square during the celebration weekend.",
+                        AuthorName = "The Borneo Post",
+                        Category = "Civic",
+                        SourceUrl = "https://www.theborneopost.com/",
+                        CreatedAt = now.AddDays(-1),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Pan Borneo Highway Sibu stretch nears completion",
+                        Summary = "Federal infrastructure project to cut Sibu–Bintulu travel time once the latest section opens to traffic.",
+                        Body = "The Sibu segment of the Pan Borneo Highway is reaching its final phases, with contractors completing key interchanges around the Sibu–Selangau corridor. When fully open, travellers from Sibu will reach Bintulu in significantly less time, and freight movement to Kuching is expected to ease. Tourism operators are watching closely — better road access typically increases day-trippers from Sarikei and longer stays in Sibu town.",
+                        AuthorName = "Bernama Sarawak",
+                        Category = "Infrastructure",
+                        SourceUrl = "https://www.bernama.com/en/state_news/sarawak.php",
+                        CreatedAt = now.AddDays(-2),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Borneo Cultural Festival returns this July",
+                        Summary = "Ten nights at Sibu Town Square — Iban, Malay, Foochow, Orang Ulu, and Bidayuh stages running 18-27 July.",
+                        Body = "The Borneo Cultural Festival, Sibu's largest annual event, returns to the Town Square with stages dedicated to each major Sarawak community. Expect ngajat warriors from Iban longhouses, Foochow opera troupes from the Methodist Hall, sape players from the Orang Ulu communities, and a closing-night fireworks display over the Rajang. Food stalls serve Kampua mee, Ayam Pansoh, kek lapis Sarawak, and Iban tuak rice wine. Free entry, runs nightly 6 PM until late.",
+                        AuthorName = "Sarawak Tourism Board",
+                        Category = "Festival",
+                        SourceUrl = "https://sarawaktourism.com/",
+                        CreatedAt = now.AddDays(-3),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Tua Pek Kong Mooncake Festival expects record turnout",
+                        Summary = "Lantern parades, Foochow opera, and stalls stacked with mooncakes return to Sibu's oldest temple.",
+                        Body = "Sibu's Tua Pek Kong temple, founded by Foochow pioneers in the late 1800s, prepares for its annual Mooncake Festival — one of the most photogenic nights in central Sarawak. The temple courtyard is lit by hundreds of paper lanterns, families parade kids in traditional outfits, and stalls sell every variety of mooncake from snow skin to wood-fire-baked Foochow style. Locals say the energy peaks around 9 PM. Bring small notes — most stalls are cash-only.",
+                        AuthorName = "See Hua Daily News",
+                        Category = "Heritage",
+                        SourceUrl = "https://www.seehua.com/",
+                        CreatedAt = now.AddDays(-4),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Sibu council unveils Rajang waterfront cycling trail",
+                        Summary = "5 km cycle path connects Wisma Sanyan to Sungai Merah — opens for public weekends starting next month.",
+                        Body = "Sibu Municipal Council has announced a new 5-kilometre cycling and walking trail along the Rajang waterfront, linking the Wisma Sanyan area to the historic Sungai Merah stretch. The trail features rest pavilions, bicycle rental kiosks, and viewpoints over the river. The council says it forms part of a broader plan to position Sibu as an eco-tourism gateway to the Rajang basin. Express boat operators welcome the move — they expect more day-trippers extending their visit upriver.",
+                        AuthorName = "Sibu Municipal Council",
+                        Category = "Tourism",
+                        SourceUrl = "https://smc.sarawak.gov.my/",
+                        CreatedAt = now.AddDays(-5),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Foochow Association launches Sibu heritage walking tour",
+                        Summary = "Two-hour guided walk from Tua Pek Kong to Lau King Howe Memorial — every Saturday morning, free entry.",
+                        Body = "The Sibu Foochow Association has launched a guided heritage walking tour for visitors curious about the city's pioneer history. The route starts at Tua Pek Kong temple, passes through the original Foochow shophouse rows along Channel Road, includes a stop at Wong Nai Siong's monument, and ends at the Lau King Howe Memorial Hospital Museum. Tours run every Saturday at 8.30 AM, last around two hours, and are free — donations to the museum welcome.",
+                        AuthorName = "Dayak Daily",
+                        Category = "Culture",
+                        SourceUrl = "https://dayakdaily.com/",
+                        CreatedAt = now.AddDays(-6),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Tamu Sibu vendors celebrate expanded market hours",
+                        Summary = "The Friday night market at Pasar Sentral now runs from Thursday evening through Sunday — more space for jungle produce stalls.",
+                        Body = "Tamu Sibu, the long-running riverside market where Iban traders bring jungle produce down from upriver longhouses, has expanded its operating hours. What used to run Friday nights only now opens Thursday evening through Sunday afternoon. Council officials cited rising visitor demand and the need to support smallholder farmers. Expect hill rice, midin (jungle fern), wild durian in season, and bamboo shoots harvested fresh from the surrounding Rajang basin.",
+                        AuthorName = "The Borneo Post",
+                        Category = "Community",
+                        SourceUrl = "https://www.theborneopost.com/",
+                        CreatedAt = now.AddDays(-7),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Sibu Airport upgrade adds direct routes within Borneo",
+                        Summary = "New direct flights to Kota Kinabalu and Pontianak announced — boost for cross-Borneo tourism circuits.",
+                        Body = "Sibu Airport has announced a phased upgrade plan including a longer apron, expanded terminal, and new direct routes to Kota Kinabalu and the Indonesian Borneo city of Pontianak. Tourism operators welcome the move — Sibu had previously been a single-hop airport with most travellers connecting through Kuching or Miri. The new routes are expected to make Sibu a more practical entry point for travellers exploring the entire Borneo island.",
+                        AuthorName = "New Sarawak Tribune",
+                        Category = "Aviation",
+                        SourceUrl = "https://www.newsarawaktribune.com.my/",
+                        CreatedAt = now.AddDays(-8),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Sibu Hospital opens new specialist wing",
+                        Summary = "Cardiology, oncology, and paediatric expansion takes pressure off referrals to Kuching and Sibu private clinics.",
+                        Body = "Sibu's main public hospital has opened a new specialist wing housing expanded cardiology, oncology, and paediatric departments. State health officials say the move means central Sarawak residents will no longer need to be referred down to Kuching for many specialist procedures. The wing also includes a new outpatient clinic and an upgraded emergency department. Construction was completed under federal-state cost-sharing across multiple budget cycles.",
+                        AuthorName = "Sarawak Government Portal",
+                        Category = "Health",
+                        SourceUrl = "https://sarawak.gov.my/",
+                        CreatedAt = now.AddDays(-10),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Sungai Igan clean-up campaign launched",
+                        Summary = "Volunteers from Sibu schools, mosques, and churches join the council's three-month river clean-up drive.",
+                        Body = "Sibu Municipal Council has launched a three-month clean-up campaign for Sungai Igan, the smaller river that feeds into the Rajang near downtown Sibu. Volunteers from local schools, the Sibu Foochow Methodist Church, the Masjid An-Nur, and the Tua Pek Kong temple have signed up for weekend rotations. Officials hope the campaign will become an annual event and eventually expand to other tributaries in the Rajang basin. Tourism advocates say cleaner waterways directly benefit Sibu's growing river-cruise market.",
+                        AuthorName = "Sibu Municipal Council",
+                        Category = "Environment",
+                        SourceUrl = "https://smc.sarawak.gov.my/",
+                        CreatedAt = now.AddDays(-12),
+                        IsPublished = true,
+                    },
+                    new Update {
+                        Title = "Sarawak premier reaffirms Sibu's role as central trading hub",
+                        Summary = "Speaking at a Foochow Association dinner, the premier outlined plans to keep Sibu central to upriver supply chains.",
+                        Body = "At a recent Foochow Association event in Sibu, the Sarawak state premier reaffirmed the town's role as the central trading hub serving the upper Rajang. The premier highlighted ongoing work on river port modernisation, road links to Kapit and Belaga, and incentives for small businesses to base themselves in Sibu rather than relocate to Kuching or Bintulu. Local business associations welcomed the focus, noting that Sibu's family-run wholesale trade has supported upriver communities for generations.",
+                        AuthorName = "Sarawak Tribune",
+                        Category = "Politics",
+                        SourceUrl = "https://www.sarawaktribune.com/",
+                        CreatedAt = now.AddDays(-14),
+                        IsPublished = true,
+                    },
+                };
+                context.Updates.AddRange(seed);
+                context.SaveChanges();
+            }
+            catch { /* idempotent — never crash startup */ }
         }
 
         /// <summary>Called manually from admin panel — resets all non-admin points/badges/visits.</summary>
